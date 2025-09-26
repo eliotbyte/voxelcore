@@ -16,7 +16,6 @@ namespace network {
     using ServerDatagramCallback = std::function<void(u64id_t sid, const std::string& addr, int port, const char* buffer, size_t length)>;
     using ClientDatagramCallback = std::function<void(u64id_t cid, const char* buffer, size_t length)>;
 
-
     class Requests {
     public:
         virtual ~Requests() {}
