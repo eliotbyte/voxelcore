@@ -244,7 +244,7 @@ static int l_open_url(lua::State* L) {
     auto menu = engine->getGUI().getMenu();
 
     guiutil::confirm(*engine, msg, [url, menu]() {
-        platform::openURL(url);
+        platform::open_url(url);
         if (!menu->back()) {
             menu->reset();
         }
