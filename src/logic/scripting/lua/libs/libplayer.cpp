@@ -2,14 +2,14 @@
 #include <glm/glm.hpp>
 
 #include "items/Inventory.hpp"
+#include "libentity.hpp"
 #include "objects/Entities.hpp"
+#include "objects/Entity.hpp"
 #include "objects/Player.hpp"
 #include "objects/Players.hpp"
-#include "objects/Entity.hpp"
 #include "physics/Hitbox.hpp"
 #include "window/Camera.hpp"
 #include "world/Level.hpp"
-#include "libentity.hpp"
 
 using namespace scripting;
 
@@ -53,7 +53,7 @@ static int l_set_vel(lua::State* L) {
     auto x = lua::tonumber(L, 2);
     auto y = lua::tonumber(L, 3);
     auto z = lua::tonumber(L, 4);
-    
+
     if (auto hitbox = player->getHitbox()) {
         hitbox->velocity = glm::vec3(x, y, z);
     }
@@ -190,7 +190,8 @@ static int l_get_interaction_distance(lua::State* L) {
 
 static int l_set_interaction_distance(lua::State* L) {
     if (auto player = get_player(L, 1)) {
-        player->setMaxInteractionDistance( static_cast<float>(lua::tonumber(L, 2)) );
+        player->setMaxInteractionDistance(
+            static_cast<float>(lua::tonumber(L, 2)));
     }
     return 0;
 }

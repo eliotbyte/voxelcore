@@ -293,7 +293,7 @@ void Player::deserialize(const dv::value& src) {
     setSpawnPoint(glm::vec3(
         sparr[0].asNumber(), sparr[1].asNumber(), sparr[2].asNumber()));
     
-    if (src.has("max-interaction-distance")) maxInteractionDistance = src["max-interaction-distance"].asNumber();
+    src.at("max-interaction-distance").get(maxInteractionDistance);
 
     flight = src["flight"].asBoolean();
     noclip = src["noclip"].asBoolean();
