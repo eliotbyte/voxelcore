@@ -57,7 +57,7 @@ class Player : public Serializable {
     bool infiniteItems = true;
     bool instantDestruction = true;
     bool loadingChunks = true;
-    float maxInteractionDistance = 10.0f;
+    float interactionDistance = 10.0f;
 
     entityid_t eid = ENTITY_AUTO;
     entityid_t selectedEid = 0;
