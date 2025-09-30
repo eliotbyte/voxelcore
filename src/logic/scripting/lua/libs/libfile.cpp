@@ -189,30 +189,26 @@ static int l_list(lua::State* L) {
 }
 
 static int l_gzip_compress(lua::State* L) {
-    std::vector<ubyte> bytes;
+    auto string = lua::bytearray_as_string(L, 1);
 
-    lua::read_bytes_from_table(L, 1, bytes);
-    auto compressed_bytes = gzip::compress(bytes.data(), bytes.size());
-    int newTable = lua::gettop(L);
+    auto compressedBytes = gzip::compress(
+        reinterpret_cast<const ubyte*>(string.data()),
+        string.size()
+    );
 
-    for (size_t i = 0; i < compressed_bytes.size(); i++) {
-        lua::pushinteger(L, compressed_bytes.data()[i]);
-        lua::rawseti(L, i + 1, newTable);
-    }
+    lua::create_bytearray(L, std::move(compressedBytes));
     return 1;
 }
 
 static int l_gzip_decompress(lua::State* L) {
-    std::vector<ubyte> bytes;
+    auto string = lua::bytearray_as_string(L, 1);
 
-    lua::read_bytes_from_table(L, 1, bytes);
-    auto decompressed_bytes = gzip::decompress(bytes.data(), bytes.size());
-    int newTable = lua::gettop(L);
+    auto decompressedBytes = gzip::decompress(
+        reinterpret_cast<const ubyte*>(string.data()),
+        string.size()
+    );
 
-    for (size_t i = 0; i < decompressed_bytes.size(); i++) {
-        lua::pushinteger(L, decompressed_bytes.data()[i]);
-        lua::rawseti(L, i + 1, newTable);
-    }
+    lua::create_bytearray(L, std::move(decompressedBytes));
     return 1;
 }
 
