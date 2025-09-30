@@ -45,6 +45,7 @@
 - [Модуль core:bit_converter](scripting/modules/core_bit_converter.md)
 - [Модуль core:data_buffer](scripting/modules/core_data_buffer.md)
 - [Модули core:vector2, core:vector3](scripting/modules/core_vector2_vector3.md)
+- [Встроенные компоненты сущностей](scripting/core_components.md)
 
 ## Аннотации типов данных
 

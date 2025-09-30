@@ -25,6 +25,10 @@ function get_route()
     return route
 end
 
+function reset_route()
+    route = nil
+end
+
 function next_waypoint()
     if not route or #route == 0 then
         return

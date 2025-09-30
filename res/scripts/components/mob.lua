@@ -51,6 +51,7 @@ end
 
 function move_vertical(speed, vel)
     vel = vel or body:get_vel()
+    speed = speed or 1.0
     vel[2] = vel[2] * 0.2 + props.movement_speed * speed * 0.8
     body:set_vel(vel)
 end
@@ -145,6 +146,10 @@ function set_dir(new_dir)
     dir = new_dir
 end
 
+function get_dir()
+    return dir
+end
+
 function is_flight() return flight end
 
 function set_flight(flag) flight = flag end
@@ -154,7 +159,7 @@ local prev_angle = (vec2.angle({dir[3], dir[1]})) % 360
 function on_physics_update(delta)
     local grounded = body:is_grounded()
     body:set_vdamping(flight)
-    body:set_gravity_scale({0, flight and 0.0 or props.gravity_scale, 0})
+    body:set_gravity_scale(flight and 0.0 or props.gravity_scale)
     body:set_linear_damping(
         (flight or not grounded) and props.air_damping or props.ground_damping
     )
