@@ -207,6 +207,9 @@ Hud::Hud(Engine& engine, LevelFrontend& frontend, Player& player)
 }
 
 Hud::~Hud() {
+    if (input.isCursorLocked()) {
+        input.toggleCursor();
+    }
     // removing all controlled ui
     for (auto& element : elements) {
         onRemove(element);
@@ -339,7 +342,7 @@ void Hud::update(bool visible) {
     if (!gui.isFocusCaught()) {
         processInput(visible);
     }
-    if ((isMenuOpen || inventoryOpen) == input.getCursor().locked) {
+    if ((isMenuOpen || inventoryOpen) == input.isCursorLocked()) {
         input.toggleCursor();
     }
 

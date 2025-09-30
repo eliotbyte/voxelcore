@@ -66,3 +66,29 @@ Property status is displayed in the inventory interface. Display method is defin
 - `number` - number
 - `relation` - current value to initial value (x/y)
 - `vbar` - vertical scale (used by default)
+
+## Tags
+
+Tags allow you to designate general properties of items. Names should be formatted as `prefix:tag_name`.
+The prefix is ​​optional, but helps avoid unwanted logical collisions. Example:
+
+```json
+{
+    "tags": [
+        "core:fuel",
+        "base_survival:poison",
+    ]
+}
+```
+
+Tags can also be added to items from other packs using the `your_pack:tags.toml` file. Example
+
+```toml
+"prefix:tag_name" = [
+    "random_pack:item",
+    "another_pack:some_block",
+]
+"other_prefix:other_tag_name" = [
+    # ...
+]
+```

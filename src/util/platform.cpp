@@ -65,6 +65,22 @@ int platform::get_process_id() {
     return GetCurrentProcessId(); 
 }
 
+bool platform::open_url(const std::string& url) {
+    if (url.empty()) return false;
+    // UTF-8 → UTF-16
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, url.c_str(), -1, nullptr, 0);
+    if (wlen <= 0) return false;
+
+    std::wstring wurl(wlen, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, url.c_str(), -1, &wurl[0], wlen);
+
+    HINSTANCE result = ShellExecuteW(
+        nullptr, L"open", wurl.c_str(), nullptr, nullptr, SW_SHOWNORMAL
+    );
+
+    return reinterpret_cast<intptr_t>(result) > 32;
+}
+
 #else // _WIN32
 
 #include <unistd.h>
@@ -72,7 +88,7 @@ int platform::get_process_id() {
 
 void platform::configure_encoding() {
 }
-
+ 
 std::string platform::detect_locale() {
     const char* const programLocaleName = setlocale(LC_ALL, nullptr);
     const char* const preferredLocaleName =
@@ -92,6 +108,34 @@ void platform::sleep(size_t millis) {
 int platform::get_process_id() {
     return getpid();
 }
+
+bool platform::open_url(const std::string& url) {
+    if (url.empty()) return false;
+
+#ifdef __APPLE__
+    auto cmd = "open " + util::quote(url);
+    if (int res = system(cmd.c_str())) {
+        logger.warning() << "'" << cmd << "' returned code " << res;
+    } else {
+        return false;
+    }
+#elif defined(_WIN32)
+    auto res = ShellExecuteW(NULL, L"open", util::quote(url).c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    if (res <= 32) {
+        logger.warning() << "'open' returned code " << res;
+    } else {
+        return false;
+    }
+#else
+    auto cmd = "xdg-open " + util::quote(url);
+    if (int res = system(cmd.c_str())) {
+        logger.warning() << "'" << cmd << "' returned code " << res;
+    } else {
+        return false;
+    }
+#endif
+    return true;
+}
 #endif // _WIN32
 
 void platform::open_folder(const std::filesystem::path& folder) {
@@ -101,9 +145,10 @@ void platform::open_folder(const std::filesystem::path& folder) {
     }
 #ifdef __APPLE__
     auto cmd = "open " + util::quote(folder.u8string());
-    system(cmd.c_str());
+    if (int res = system(cmd.c_str())) {
+        logger.warning() << "'" << cmd << "' returned code " << res;
+    }
 #elif defined(_WIN32)
-    auto cmd = "start explorer " + util::quote(folder.u8string());
     ShellExecuteW(NULL, L"open", folder.wstring().c_str(), NULL, NULL, SW_SHOWDEFAULT);
 #else
     auto cmd = "xdg-open " + util::quote(folder.u8string());

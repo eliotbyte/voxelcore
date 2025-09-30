@@ -1,8 +1,8 @@
 # Документация
 
-Документация версии 0.29 (в разработке).
+Документация версии 0.30 (в разработке).
 
-[Документация версии 0.28](https://github.com/MihailRis/voxelcore/blob/release-0.28/doc/ru/main-page.md)
+[Документация 0.29.](https://github.com/MihailRis/voxelcore/blob/release-0.29/doc/ru/main-page.md)
 
 ## Разделы
 
