@@ -95,7 +95,7 @@ socket:is_connected() --> bool
 socket:get_address() --> str, int
 
 -- Возвращает состояние NoDelay
-socket:get_nodelay() --> bool
+socket:is_nodelay() --> bool
 
 -- Устанавливает состояние NoDelay
 socket:set_nodelay(state: bool)

@@ -45,7 +45,7 @@ local Socket = {__index={
     is_connected=function(self) return network.__is_connected(self.id) end,
     get_address=function(self) return network.__get_address(self.id) end,
     set_nodelay=function(self, nodelay) return network.__set_nodelay(self.id, nodelay or false) end,
-    get_nodelay=function(self) return network.__get_nodelay(self.id) end,
+    is_nodelay=function(self) return network.__is_nodelay(self.id) end,
 }}
 
 local WriteableSocket = {__index={

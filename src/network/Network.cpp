@@ -362,7 +362,7 @@ public:
         }
     }
 
-    bool getNoDelay() const override {
+    bool isNoDelay() const override {
         int opt = 0;
         socklen_t len = sizeof(opt);
         if (getsockopt(descriptor, IPPROTO_TCP, TCP_NODELAY, (char*)&opt, &len) < 0) {

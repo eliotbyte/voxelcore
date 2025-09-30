@@ -413,11 +413,11 @@ static int l_set_nodelay(lua::State* L, network::Network& network) {
     return 0;
 }
 
-static int l_get_nodelay(lua::State* L, network::Network& network) {
+static int l_is_nodelay(lua::State* L, network::Network& network) {
     u64id_t id = lua::tointeger(L, 1);
     if (auto connection = network.getConnection(id)) {
         if (connection->getTransportType() == network::TransportType::TCP) {
-            bool noDelay = dynamic_cast<network::TcpConnection*>(connection)->getNoDelay();
+            bool noDelay = dynamic_cast<network::TcpConnection*>(connection)->isNoDelay();
             return lua::pushboolean(L, noDelay);
         }
     }
@@ -540,6 +540,6 @@ const luaL_Reg networklib[] = {
     {"__is_serveropen", wrap<l_is_serveropen>},
     {"__get_serverport", wrap<l_get_serverport>},
     {"__set_nodelay", wrap<l_set_nodelay>},
-    {"__get_nodelay", wrap<l_get_nodelay>},
+    {"__is_nodelay", wrap<l_is_nodelay>},
     {NULL, NULL}
 };
