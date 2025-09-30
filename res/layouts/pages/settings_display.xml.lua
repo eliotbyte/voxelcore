@@ -53,10 +53,18 @@ function create_checkbox(id, name, tooltip)
     ))
 end
 
+function create_selectbox(id, name, tooltip)
+    tooltip = tooltip or ''
+    document.root:add(string.format(
+        "<selectbox consumer='function(x) core.set_setting(\"%s\", x) end' checked='%s' tooltip='%s'>%s</checkbox>", 
+        id, core.str_setting(id), gui.str(tooltip, "settings"), gui.str(name, "settings")
+    ))
+end
+
 function on_open()
     create_setting("camera.fov", "FOV", 1, "°")
     create_setting("display.framerate", "Framerate", 1, "", "", true)
-    create_checkbox("display.fullscreen", "Fullscreen")
+    --create_checkbox("display.fullscreen", "Fullscreen")
     create_checkbox("camera.shaking", "Camera Shaking")
     create_checkbox("camera.inertia", "Camera Inertia")
     create_checkbox("camera.fov-effects", "Camera FOV Effects")
