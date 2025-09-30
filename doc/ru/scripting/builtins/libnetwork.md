@@ -72,6 +72,12 @@ socket:is_connected() --> bool
 
 -- Возвращает адрес и порт соединения.
 socket:get_address() --> str, int
+
+-- Возвращает состояние NoDelay
+socket:get_nodelay() --> bool
+
+-- Устанавливает состояние NoDelay
+socket:set_nodelay(state: bool)
 ```
 
 ```lua
