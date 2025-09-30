@@ -768,9 +768,12 @@ namespace lua {
     }
 
     inline std::string_view bytearray_as_string(lua::State* L, int idx) {
-        lua::requireglobal(L, "Bytearray_as_string");
         lua::pushvalue(L, idx);
+        lua::requireglobal(L, "Bytearray_as_string");
+        lua::pushvalue(L, -2);
         lua::call(L, 1, 1);
-        return lua::tolstring(L, -1);
+        auto view = lua::tolstring(L, -1);
+        lua::pop(L, 2);
+        return view;
     }
 }

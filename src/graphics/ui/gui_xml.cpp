@@ -152,8 +152,9 @@ static void read_uinode(
     if (element.has("pressed-color")) {
         node.setPressedColor(element.attr("pressed-color").asColor());
     }
-    const auto& alignName = element.attr("align", "").getText();
-    node.setAlign(align_from_string(alignName, node.getAlign()));
+    node.setAlign(
+        align_from_string(element.attr("align", "").getText(), node.getAlign())
+    );
 
     if (element.has("gravity")) {
         node.setGravity(gravity_from_string(element.attr("gravity").getText()));

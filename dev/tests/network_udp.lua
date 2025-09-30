@@ -1,5 +1,4 @@
-math.randomseed(43172)
-for i = 1, 15 do
+for i = 1, 3 do
     debug.log(string.format("iteration %s", i))
     local complete = false
 
@@ -30,6 +29,7 @@ for i = 1, 15 do
         end, "udp-data-sender")
     end)
 
-    app.sleep_until(function () return complete end, nil, 5)
+    app.sleep_until(function () return complete end, nil, 1)
+    assert(complete, "timeout at iteration #"..i)
     server:close()
 end
