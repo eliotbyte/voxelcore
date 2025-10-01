@@ -189,7 +189,7 @@ static int l_list(lua::State* L) {
 }
 
 static int l_gzip_compress(lua::State* L) {
-    char argc = lua_gettop(L);
+    char argc = lua::gettop(L);
     auto str = lua::bytearray_as_string(L, 1);
     auto compressedBytes = gzip::compress(
         reinterpret_cast<const ubyte*>(str.data()),
@@ -212,7 +212,7 @@ static int l_gzip_compress(lua::State* L) {
 }
 
 static int l_gzip_decompress(lua::State* L) {
-    char argc = lua_gettop(L);
+    char argc = lua::gettop(L);
     auto str = lua::bytearray_as_string(L, 1);
     auto decompressedBytes = gzip::decompress(
         reinterpret_cast<const ubyte*>(str.data()),
@@ -454,3 +454,4 @@ const luaL_Reg filelib[] = {
     {"__close_all_descriptors", lua::wrap<l_close_all_descriptors>},
     {NULL, NULL}
 };
+
