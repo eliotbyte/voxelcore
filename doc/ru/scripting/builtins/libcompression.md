@@ -10,7 +10,7 @@ compression.encode(
     -- Алгоритм сжатия (поддерживается только gzip)
     [опционально] algorithm="gzip",
     -- Вернуть результат в table?
-    [опционально] usetable=false,
+    [опционально] usetable=false
 ) -> array of integers
 
 -- Разжимает массив байт.
@@ -20,6 +20,6 @@ compression.decode(
     -- Алгоритм разжатия (поддерживается только gzip)
     [опционально] algorithm="gzip",
     -- Вернуть результат в table?
-    [опционально] usetable=false,
+    [опционально] usetable=false
 ) -> array of integers
 ```
