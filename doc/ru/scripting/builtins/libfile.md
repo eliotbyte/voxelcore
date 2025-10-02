@@ -44,18 +44,6 @@ file.write_bytes(путь: str, data: array of integers)
 Записывает массив байт в файл (с перезаписью)
 
 ```python
-file.gzip_compress(data: array of integers, [опционально] usetable) -> array of integers
-```
-
-Сжимает массив байт алгоритмом gzip. При значении usetable = false возвращает Bytearray вместо table.
-
-```python
-file.gzip_decompress(data: array of integers, [опционально] usetable) -> array of integers
-```
-
-Разжимает массив байт, который был сжат алгоритмом gzip. При значении usetable = false возвращает Bytearray вместо table.
-
-```python
 file.length(путь: str) -> int
 ```
 
