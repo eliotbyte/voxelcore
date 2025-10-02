@@ -14,7 +14,7 @@ compression.encode(
 ) -> array of integers
 
 -- Разжимает массив байт.
-compression.encode(
+compression.decode(
     -- Массив байт
     data: array of integers, 
     -- Алгоритм разжатия (поддерживается только gzip)
