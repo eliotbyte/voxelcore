@@ -188,52 +188,6 @@ static int l_list(lua::State* L) {
     return 1;
 }
 
-static int l_gzip_compress(lua::State* L) {
-    char argc = lua::gettop(L);
-    auto str = lua::bytearray_as_string(L, 1);
-    auto compressedBytes = gzip::compress(
-        reinterpret_cast<const ubyte*>(str.data()),
-        str.size()
-    );
-
-    if (argc < 2 || !lua::toboolean(L, 2)) {
-        lua::create_bytearray(L, std::move(compressedBytes));
-    } else {
-        size_t length = compressedBytes.size();
-        lua::createtable(L, length, 0);
-        int newTable = lua::gettop(L);
-        for (size_t i = 0; i < length; i++) {
-            lua::pushinteger(L, compressedBytes.data()[i]);
-            lua::rawseti(L, i + 1, newTable);
-        }
-    }
-
-    return 1;
-}
-
-static int l_gzip_decompress(lua::State* L) {
-    char argc = lua::gettop(L);
-    auto str = lua::bytearray_as_string(L, 1);
-    auto decompressedBytes = gzip::decompress(
-        reinterpret_cast<const ubyte*>(str.data()),
-        str.size()
-    );
-
-    if (argc < 2 || !lua::toboolean(L, 2)) {
-        lua::create_bytearray(L, std::move(decompressedBytes));
-    } else {
-        size_t length = decompressedBytes.size();
-        lua::createtable(L, length, 0);
-        int newTable = lua::gettop(L);
-        for (size_t i = 0; i < length; i++) {
-            lua::pushinteger(L, decompressedBytes.data()[i]);
-            lua::rawseti(L, i + 1, newTable);
-        }
-    }
-
-    return 1;
-}
-
 static int l_read_combined_list(lua::State* L) {
     std::string path = lua::require_string(L, 1);
     if (path.find(':') != std::string::npos) {
@@ -437,8 +391,6 @@ const luaL_Reg filelib[] = {
     {"resolve", lua::wrap<l_resolve>},
     {"write_bytes", lua::wrap<l_write_bytes>},
     {"write", lua::wrap<l_write>},
-    {"gzip_compress", lua::wrap<l_gzip_compress>},
-    {"gzip_decompress", lua::wrap<l_gzip_decompress>},
     {"read_combined_list", lua::wrap<l_read_combined_list>},
     {"read_combined_object", lua::wrap<l_read_combined_object>},
     {"is_writeable", lua::wrap<l_is_writeable>},
