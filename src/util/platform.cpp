@@ -10,13 +10,22 @@
 #include "stringutil.hpp"
 #include "typedefs.hpp"
 #include "debug/Logger.hpp"
-
-static debug::Logger logger("platform");
+#include "frontend/locale.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
 #pragma comment(lib, "winmm.lib")
+#else
+#include <unistd.h>
+#endif
 
+namespace platform::internal {
+    std::filesystem::path get_executable_path();
+}
+
+static debug::Logger logger("platform");
+
+#ifdef _WIN32
 void platform::configure_encoding() {
     // set utf-8 encoding to console output
     SetConsoleOutputCP(CP_UTF8);
@@ -82,9 +91,6 @@ bool platform::open_url(const std::string& url) {
 }
 
 #else // _WIN32
-
-#include <unistd.h>
-#include "frontend/locale.hpp"
 
 void platform::configure_encoding() {
 }
@@ -156,5 +162,49 @@ void platform::open_folder(const std::filesystem::path& folder) {
         logger.warning() << "'" << cmd << "' returned code " << res;
     }
 
+#endif
+}
+
+std::filesystem::path platform::get_executable_path() {
+#ifdef _WIN32
+    wchar_t buffer[MAX_PATH];
+    DWORD result = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+    if (result == 0) {
+        DWORD error = GetLastError();
+        throw std::runtime_error("GetModuleFileName failed with code: " + std::to_string(error));
+    }
+
+    int size = WideCharToMultiByte(
+        CP_UTF8, 0, buffer, -1, nullptr, 0, nullptr, nullptr
+    );
+    if (size == 0) {
+        throw std::runtime_error("could not get executable path");
+    }
+    std::string str(size, 0);
+    size = WideCharToMultiByte(
+        CP_UTF8, 0, buffer, -1, str.data(), size, nullptr, nullptr
+    );
+    if (size == 0) {
+        DWORD error = GetLastError();
+        throw std::runtime_error("WideCharToMultiByte failed with code: " + std::to_string(error));
+    }
+    str.resize(size - 1);
+    return std::filesystem::path(str);
+
+#elif defined(__APPLE__)
+    auto path = platform::internal::get_executable_path();
+    if (path.empty()) {
+        throw std::runtime_error("could not get executable path");
+    }
+    return path;
+#else
+    char buffer[1024];
+    ssize_t count = readlink("/proc/self/exe", buffer, sizeof(buffer));
+    if (count != -1) {
+        return std::filesystem::canonical(std::filesystem::path(
+            std::string(buffer, static_cast<size_t>(count))
+        ));
+    }
+    throw std::runtime_error("could not get executable path");
 #endif
 }
