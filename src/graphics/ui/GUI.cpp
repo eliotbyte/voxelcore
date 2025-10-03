@@ -19,7 +19,6 @@
 #include "graphics/core/DrawContext.hpp"
 #include "graphics/core/Shader.hpp"
 #include "gui_util.hpp"
-#include "util/platform.hpp"
 #include "window/Camera.hpp"
 #include "window/Window.hpp"
 #include "window/input.hpp"
@@ -204,13 +203,6 @@ void GUI::act(float delta, const glm::uvec2& vp) {
     container->setSize(vp);
     container->act(delta);
     auto prevfocus = focus;
-
-    if (input.jpressed(Keycode::BACKSPACE)) {
-        platform::new_engine_instance({
-            "--res", engine.getPaths().getResourcesFolder().u8string(),
-            "--dir", engine.getPaths().getUserFilesFolder().u8string()
-        });
-    }
 
     updateTooltip(delta);
 
