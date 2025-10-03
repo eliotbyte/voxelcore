@@ -115,73 +115,6 @@ int platform::get_process_id() {
     return getpid();
 }
 
-void platform::new_engine_instance(const std::vector<std::string>& args) {
-    auto executable = get_executable_path();
-
-#ifdef _WIN32
-    std::stringstream ss;
-    for (int i = 0; i < args.size(); i++) {
-        ss << " " << util::quote(args[i]);
-    }
-
-    auto toWString = [](const std::string& src)  {
-        if (src.empty()) 
-            return L"";
-        int size = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, nullptr, 0);
-        if (size == 0) {
-            throw std::runtime_error(
-                "MultiByteToWideChar failed with code: " +
-                std::to_string(GetLastError())
-            )
-        }
-        std::vector<wchar_t> buffer(size);
-        MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, buffer.data(), size);
-        return std::wstring(buffer.data());
-    };
-
-    auto executableString = toWString(executable.u8string());
-    auto argsString = toWString(ss.str());
-
-    STARTUPINFOW si = { sizeof(si) };
-    PROCESS_INFORMATION pi = { 0 };
-    DWORD flags = CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS;
-    // | CREATE_NO_WINDOW;
-    BOOL success = CreateProcessW(
-        executable.u8string().c_str(),
-        argsString.c_str(),
-        nullptr,
-        nullptr,
-        FALSE,
-        flags,
-        nullptr,
-        "",
-        &si,
-        &pi
-    );
-    if (!success) {
-        throw std::runtime_error(
-            "starting an engine instance failed with code: " +
-            std::to_string(GetLastError())
-        );
-    }
-#else
-    std::stringstream ss;
-    ss << executable;
-    for (int i = 0; i < args.size(); i++) {
-        ss << " " << util::quote(args[i]);
-    }
-    ss << " >/dev/null &";
-    
-    auto command = ss.str();
-    if (int res = system(command.c_str())) {
-        throw std::runtime_error(
-            "starting an engine instance failed with code: " +
-            std::to_string(res)
-        );
-    }
-#endif
-}
-
 bool platform::open_url(const std::string& url) {
     if (url.empty()) return false;
 
@@ -273,5 +206,73 @@ std::filesystem::path platform::get_executable_path() {
         ));
     }
     throw std::runtime_error("could not get executable path");
+#endif
+}
+
+void platform::new_engine_instance(const std::vector<std::string>& args) {
+    auto executable = get_executable_path();
+
+#ifdef _WIN32
+    std::stringstream ss;
+    for (int i = 0; i < args.size(); i++) {
+        ss << " " << util::quote(args[i]);
+    }
+
+    auto toWString = [](const std::string& src) -> std::wstring {
+        if (src.empty()) 
+            return L"";
+        int size = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, nullptr, 0);
+        if (size == 0) {
+            throw std::runtime_error(
+                "MultiByteToWideChar failed with code: " +
+                std::to_string(GetLastError())
+            );
+        }
+        std::vector<wchar_t> buffer(size + 1);
+        buffer[size] = 0;
+        MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, buffer.data(), size);
+        return std::wstring(buffer.data(), size);
+    };
+
+    auto executableString = toWString(executable.u8string());
+    auto argsString = toWString(ss.str());
+
+    STARTUPINFOW si = { sizeof(si) };
+    PROCESS_INFORMATION pi = { 0 };
+    DWORD flags = CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS;
+    // | CREATE_NO_WINDOW;
+    BOOL success = CreateProcessW(
+        executableString.c_str(),
+        argsString.data(),
+        nullptr,
+        nullptr,
+        FALSE,
+        flags,
+        nullptr,
+        L"",
+        &si,
+        &pi
+    );
+    if (!success) {
+        throw std::runtime_error(
+            "starting an engine instance failed with code: " +
+            std::to_string(GetLastError())
+        );
+    }
+#else
+    std::stringstream ss;
+    ss << executable;
+    for (int i = 0; i < args.size(); i++) {
+        ss << " " << util::quote(args[i]);
+    }
+    ss << " >/dev/null &";
+    
+    auto command = ss.str();
+    if (int res = system(command.c_str())) {
+        throw std::runtime_error(
+            "starting an engine instance failed with code: " +
+            std::to_string(res)
+        );
+    }
 #endif
 }
