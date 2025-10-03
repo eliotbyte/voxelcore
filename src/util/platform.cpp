@@ -214,6 +214,7 @@ void platform::new_engine_instance(const std::vector<std::string>& args) {
 
 #ifdef _WIN32
     std::stringstream ss;
+    ss << util::quote(executable.u8string());
     for (int i = 0; i < args.size(); i++) {
         ss << " " << util::quote(args[i]);
     }
@@ -230,30 +231,38 @@ void platform::new_engine_instance(const std::vector<std::string>& args) {
         }
         std::vector<wchar_t> buffer(size + 1);
         buffer[size] = 0;
-        MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, buffer.data(), size);
-        return std::wstring(buffer.data(), size);
+        size = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, buffer.data(), size);
+        if (size == 0) {
+            throw std::runtime_error(
+                "MultiByteToWideChar failed with code: " +
+                std::to_string(GetLastError())
+            );
+        }
+        return std::wstring(buffer.data(), size + 1);
     };
 
-    auto executableString = toWString(executable.u8string());
-    auto argsString = toWString(ss.str());
+    auto commandString = toWString(ss.str());
 
     STARTUPINFOW si = { sizeof(si) };
     PROCESS_INFORMATION pi = { 0 };
     DWORD flags = CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS;
     // | CREATE_NO_WINDOW;
     BOOL success = CreateProcessW(
-        executableString.c_str(),
-        argsString.data(),
+        nullptr,
+        commandString.data(),
         nullptr,
         nullptr,
         FALSE,
         flags,
         nullptr,
-        L"",
+        nullptr,
         &si,
         &pi
     );
-    if (!success) {
+    if (success) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    } else {
         throw std::runtime_error(
             "starting an engine instance failed with code: " +
             std::to_string(GetLastError())
