@@ -10,6 +10,7 @@
 
 #ifdef _WIN32
 #include <curl/curl.h>
+#define SHUT_RDWR SD_BOTH
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
