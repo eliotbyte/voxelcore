@@ -231,7 +231,7 @@ public:
             readBatch.clear();
 
             if (state != ConnectionState::CLOSED) {
-                shutdown(descriptor, 2);
+                shutdown(descriptor, SHUT_RDWR);
                 closesocket(descriptor);
             }
         }

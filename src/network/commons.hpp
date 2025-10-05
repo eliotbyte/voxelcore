@@ -75,6 +75,12 @@ namespace network {
         bool isprivate = false;
     };
 
+    class ReadableConnection : public Connection {
+    public:
+        virtual int recv(char* buffer, size_t length) = 0;
+        virtual int available() = 0;
+    };
+
     class Server {
     public:
         virtual ~Server() = default;
