@@ -37,6 +37,8 @@ namespace network {
         [[nodiscard]] TransportType getTransportType() const noexcept override {
             return TransportType::TCP;
         }
+
+        virtual void setMaxClientsConnected(int count) = 0;
     };
 
     class UdpServer : public Server {

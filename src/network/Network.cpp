@@ -164,15 +164,16 @@ void Network::update() {
             }
             ++socketiter;
         }
-        auto serveriter = servers.begin();
-        while (serveriter != servers.end()) {
-            auto server = serveriter->second.get();
-            if (!server->isOpen()) {
-                serveriter = servers.erase(serveriter);
-                continue;
-            }
-            ++serveriter;
+    }
+    auto serveriter = servers.begin();
+    while (serveriter != servers.end()) {
+        auto server = serveriter->second.get();
+        if (!server->isOpen()) {
+            serveriter = servers.erase(serveriter);
+            continue;
         }
+        server->update();
+        ++serveriter;
     }
 }
 
