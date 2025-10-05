@@ -14,6 +14,7 @@
 #include "coders/commons.hpp"
 #include "devtools/Editor.hpp"
 #include "devtools/Project.hpp"
+#include "devtools/DebuggingServer.hpp"
 #include "content/ContentControl.hpp"
 #include "core_defs.hpp"
 #include "io/io.hpp"
@@ -115,6 +116,9 @@ void Engine::initializeClient() {
     if (ENGINE_DEBUG_BUILD) {
         title += " [debug]";
     }
+    if (debuggingServer) {
+        title = "[debugging] " + title;
+    }
     auto [window, input] = Window::initialize(&settings.display, title);
     if (!window || !input){
         throw initialize_error("could not initialize window");
@@ -172,6 +176,18 @@ void Engine::initialize(CoreParameters coreParameters) {
     editor = std::make_unique<devtools::Editor>(*this);
     cmd = std::make_unique<cmd::CommandsInterpreter>();
     network = network::Network::create(settings.network);
+
+    if (!params.debugServerString.empty()) {
+        try {
+            debuggingServer = std::make_unique<devtools::DebuggingServer>(
+                *this, params.debugServerString
+            );
+        } catch (const std::runtime_error& err) {
+            throw initialize_error(
+                "debugging server error: " + std::string(err.what())
+            );
+        }
+    }
 
     if (!params.scriptFile.empty()) {
         paths.setScriptFolder(params.scriptFile.parent_path());
@@ -299,7 +315,11 @@ void Engine::saveSettings() {
     io::write_string(EnginePaths::SETTINGS_FILE, toml::stringify(*settingsHandler));
     if (!params.headless) {
         logger.info() << "saving bindings";
-        io::write_string(EnginePaths::CONTROLS_FILE, input->getBindings().write());
+        if (input) {
+            io::write_string(
+                EnginePaths::CONTROLS_FILE, input->getBindings().write()
+            );
+        }
     }
 }
 
@@ -318,6 +338,7 @@ void Engine::close() {
         logger.info() << "gui finished";
     }
     audio::close();
+    debuggingServer.reset();
     network.reset();
     clearKeepedObjects();
     project.reset();

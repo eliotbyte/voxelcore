@@ -70,11 +70,15 @@ static bool perform_keyword(
             std::cout << ENGINE_VERSION_STRING << std::endl;
             return false;
         }, "", "display the engine version."),
+        ArgC("--dbg-server", [&params, &reader]() -> bool {
+            params.debugServerString = reader.next();
+            return true;
+        }, "<serv>", "open debugging server where <serv> is {transport}:{port}"),
         ArgC("--help", []() -> bool {
             std::cout << "VoxelCore v" << ENGINE_VERSION_STRING << "\n\n";
             std::cout << "Command-line arguments:\n";
             for (auto& a : argumentsCommandline) {
-                std::cout << std::setw(20) << std::left << (a.keyword + " " + a.args);
+                std::cout << std::setw(24) << std::left << (a.keyword + " " + a.args);
                 std::cout << "- " << a.help << std::endl;
             }
             std::cout << std::endl;

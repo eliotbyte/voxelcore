@@ -617,7 +617,9 @@ namespace lua {
     void remove_environment(lua::State*, int id);
 
     inline void close(lua::State* L) {
-        lua_close(L);
+        if (L) {
+            lua_close(L);
+        }
     }
 
     inline void addfunc(
