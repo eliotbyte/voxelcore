@@ -282,6 +282,12 @@ void Engine::postUpdate() {
     network->update();
     postRunnables.run();
     scripting::process_post_runnables();
+
+    if (debuggingServer) {
+        if (!debuggingServer->update()) {
+            debuggingServer.reset();
+        }
+    }
 }
 
 void Engine::updateFrontend() {

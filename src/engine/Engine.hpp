@@ -51,7 +51,7 @@ struct CoreParameters {
     std::filesystem::path userFolder = ".";
     std::filesystem::path scriptFile;
     std::filesystem::path projectFolder;
-    std::string debugServerString;
+    std::string debugServerString = "tcp:9030";
     int tps = 20;
 };
 
