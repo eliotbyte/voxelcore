@@ -165,6 +165,11 @@ bool DebuggingServer::performCommand(
     return true;
 }
 
+void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
+    logger.info() << "hit breakpoint:\n"
+                  << json::stringify(stackTrace, true, "    ");
+}
+
 void DebuggingServer::setClient(u64id_t client) {
     this->connection =
         std::make_unique<ClientConnection>(engine.getNetwork(), client);

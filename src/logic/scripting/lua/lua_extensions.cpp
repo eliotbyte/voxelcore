@@ -1,9 +1,12 @@
 #include <iostream>
 #include <iomanip>
 #include <random>
+#include <sstream>
 
 #include "libs/api_lua.hpp"
 #include "debug/Logger.hpp"
+#include "engine/Engine.hpp"
+#include "devtools/DebuggingServer.hpp"
 #include "logic/scripting/scripting.hpp"
 
 using namespace scripting;
@@ -159,6 +162,120 @@ static int l_math_normal_random(lua::State* L) {
     return lua::pushnumber(L, randomFloats(generator));
 }
 
+constexpr inline int MAX_SHORT_STRING_LEN = 50;
+
+static dv::value create_stack_trace(lua_State* L, int initFrame = 2) {
+    auto entriesList = dv::list();
+
+    lua_Debug frame;
+    int level = initFrame;
+    
+    while (lua_getstack(L, level, &frame)) {
+        auto entry = dv::object();
+        if (lua_getinfo(L, "nSlf", &frame) == 0) {
+            level++;
+            entriesList.add(std::move(entry));
+            continue;
+        }
+        if (frame.name) {
+            entry["function"] = frame.name;
+        }
+        if (frame.source) {
+            const char* src =
+                (frame.source[0] == '@') ? frame.source + 1 : frame.source;
+            entry["source"] = src;
+            entry["line"] = frame.currentline;
+        }
+        entry["what"] = frame.what;
+
+        auto locals = dv::object();
+
+        int localIndex = 1;
+        const char* name;
+        while ((name = lua_getlocal(L, &frame, localIndex++))) {
+            if (name[0] == '(') {
+                lua::pop(L);
+                continue;
+            }
+            auto local = dv::object();
+
+            int type = lua::type(L, -1);
+            switch (type) {
+                case LUA_TNIL:
+                    local["short"] = "nil";
+                    local["type"] = "nil";
+                    break;
+                case LUA_TBOOLEAN:
+                    local["short"] = lua::toboolean(L, -1) ? "true" : "false";
+                    local["type"] = "boolean";
+                    break;
+                case LUA_TNUMBER: {
+                    std::stringstream ss;
+                    ss << lua::tonumber(L, -1);
+                    local["short"] = ss.str();
+                    local["type"] = "number";
+                    break;
+                }
+                case LUA_TSTRING: {
+                    const char* str = lua::tostring(L, -1);
+                    if (strlen(str) > MAX_SHORT_STRING_LEN) {
+                        local["short"] = std::string(str, MAX_SHORT_STRING_LEN);
+                    } else {
+                        local["short"] = str;
+                    }
+                    local["type"] = "string";
+                    break;
+                }
+                case LUA_TTABLE:
+                    local["short"] = "{...}";
+                    local["type"] = "table";
+                    break;
+                case LUA_TFUNCTION: {
+                    std::stringstream ss;
+                    ss << "function: 0x" << std::hex << lua::topointer(L, -1);
+                    local["short"] = ss.str();
+                    local["type"] = "function";
+                    break;
+                }
+                case LUA_TUSERDATA: {
+                    std::stringstream ss;
+                    ss << "userdata: 0x" << std::hex << lua::topointer(L, -1);
+                    local["short"] = ss.str();
+                    local["type"] = "userdata";
+                    break;
+                }
+                case LUA_TTHREAD: {
+                    std::stringstream ss;
+                    ss << "thread: 0x" << std::hex << lua::topointer(L, -1);
+                    local["short"] = ss.str();
+                    local["type"] = "thread";
+                    break;
+                }
+                default: {
+                    std::stringstream ss;
+                    ss << "cdata: 0x" << std::hex << lua::topointer(L, -1);
+                    local["short"] = ss.str();
+                    local["type"] = "cdata";
+                    break;
+                }
+            }
+            locals[name] = std::move(local);
+            lua::pop(L);
+        }
+        entry["locals"] = std::move(locals);
+        entriesList.add(std::move(entry));
+        level++;
+    }
+    return entriesList;
+}
+
+static int l_debug_breakpoint(lua::State* L) {
+    if (auto server = engine->getDebuggingServer()) {
+        server->onHitBreakpoint(create_stack_trace(L));
+    }
+    return 0;
+}
+
 void initialize_libs_extends(lua::State* L) {
     if (lua::getglobal(L, "debug")) {
         lua::pushcfunction(L, lua::wrap<l_debug_error>);
@@ -172,6 +289,9 @@ void initialize_libs_extends(lua::State* L) {
 
         lua::pushcfunction(L, lua::wrap<l_debug_print>);
         lua::setfield(L, "print");
+
+        lua::pushcfunction(L, lua::wrap<l_debug_breakpoint>);
+        lua::setfield(L, "breakpoint");
 
         lua::pop(L);
     }

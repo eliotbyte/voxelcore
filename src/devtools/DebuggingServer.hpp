@@ -41,6 +41,7 @@ namespace devtools {
         ~DebuggingServer();
 
         bool update();
+        void onHitBreakpoint(dv::value&& stackTrace);
 
         void setClient(u64id_t client);
     private:

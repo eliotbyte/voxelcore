@@ -185,4 +185,8 @@ public:
     const Project& getProject() {
         return *project;
     }
+
+    devtools::DebuggingServer* getDebuggingServer() {
+        return debuggingServer.get();
+    }
 };
