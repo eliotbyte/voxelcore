@@ -1211,13 +1211,12 @@ void TextBox::setCaret(size_t position) {
     }
     int lcaret = caret - rawTextCache.getTextLineOffset(line);
     int realoffset =
-        rawTextCache.metrics.calcWidth(labelText, lcaret) - static_cast<int>(textOffset) + 2;
+        rawTextCache.metrics.calcWidth(labelText, 0, lcaret) - static_cast<int>(textOffset) + 2;
 
     if (realoffset - width > 0) {
         setTextOffset(textOffset + realoffset - width);
     } else if (realoffset < 0) {
-        setTextOffset(std::max(textOffset + realoffset, static_cast<size_t>(0))
-        );
+        setTextOffset(std::max(textOffset + realoffset, static_cast<size_t>(0)));
     }
 }
 
