@@ -280,30 +280,33 @@ static int l_debug_breakpoint(lua::State* L) {
 }
 
 static int l_debug_pull_events(lua::State* L) {
-    if (auto server = engine->getDebuggingServer()) {
-        auto events = server->pullBreakpointEvents();
-        if (events.empty()) {
-            return 0;
-        }
-        lua::createtable(L, events.size(), 0);
-        for (int i = 0; i < events.size(); i++) {
-            const auto& event = events[i];
-            lua::createtable(L, 3, 0);
+    auto server = engine->getDebuggingServer();
+    if (!server) {
+        return 0;
+    }
+    auto events = server->pullEvents();
+    if (events.empty()) {
+        return 0;
+    }
+    lua::createtable(L, events.size(), 0);
+    for (int i = 0; i < events.size(); i++) {
+        const auto& event = events[i];
+        lua::createtable(L, 3, 0);
 
-            lua::pushinteger(L, static_cast<int>(event.type));
-            lua::rawseti(L, 1);
+        lua::pushinteger(L, static_cast<int>(event.type));
+        lua::rawseti(L, 1);
 
-            lua::pushstring(L, event.source);
+        if (auto dto = std::get_if<devtools::BreakpointEventDto>(&event.data)) {
+            lua::pushstring(L, dto->source);
             lua::rawseti(L, 2);
 
-            lua::pushinteger(L, event.line);
+            lua::pushinteger(L, dto->line);
             lua::rawseti(L, 3);
-
-            lua::rawseti(L, i + 1);
         }
-        return 1;
+
+        lua::rawseti(L, i + 1);
     }
-    return 0;
+    return 1;
 }
 
 void initialize_libs_extends(lua::State* L) {

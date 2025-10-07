@@ -284,10 +284,12 @@ void Engine::postUpdate() {
     scripting::process_post_runnables();
 
     if (debuggingServer) {
-        if (!debuggingServer->update()) {
-            debuggingServer.reset();
-        }
+        debuggingServer->update();
     }
+}
+
+void Engine::detachDebugger() {
+    debuggingServer.reset();
 }
 
 void Engine::updateFrontend() {
@@ -317,10 +319,9 @@ void Engine::startPauseLoop() {
             input->toggleCursor();
         }
     }
-    while (!isQuitSignal()) {
+    while (!isQuitSignal() && debuggingServer) {
         network->update();
-        if (!debuggingServer->update()) {
-            debuggingServer.reset();
+        if (debuggingServer->update()) {
             break;
         }
         if (isHeadless()) {

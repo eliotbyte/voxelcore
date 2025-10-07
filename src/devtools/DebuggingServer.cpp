@@ -130,25 +130,25 @@ DebuggingServer::~DebuggingServer() {
 
 bool DebuggingServer::update() {
     if (connection == nullptr) {
-        return true;
+        return false;
     }
     std::string message = connection->read();
     if (message.empty()) {
-        return true;
+        return false;
     }
     logger.debug() << "received: " << message;
     try {
         auto obj = json::parse(message);
         if (!obj.has("type")) {
             logger.error() << "missing message type";
-            return true;
+            return false;
         }
         const auto& type = obj["type"].asString();
         return performCommand(type, obj);
     } catch (const std::runtime_error& err) {
         logger.error() << "could not to parse message: " << err.what();
     }
-    return true;
+    return false;
 }
 
 bool DebuggingServer::performCommand(
@@ -158,24 +158,38 @@ bool DebuggingServer::performCommand(
         engine.quit();
         connection->sendResponse("success");
     } else if (type == "detach") {
-        logger.info() << "detach received";
         connection->sendResponse("success");
         connection.reset();
+        engine.detachDebugger();
         return false;
     } else if (type == "set-breakpoint" || type == "remove-breakpoint") {
         if (!map.has("source") || !map.has("line"))
-            return true;
-        breakpointEvents.push_back(BreakpointEvent {
+            return false;
+        breakpointEvents.push_back(DebuggingEvent {
             type[0] == 's' 
-            ? BreakpointEventType::SET_BREAKPOINT
-            : BreakpointEventType::REMOVE_BREAKPOINT,
-            map["source"].asString(),
-            static_cast<int>(map["line"].asInteger()),
+            ? DebuggingEventType::SET_BREAKPOINT
+            : DebuggingEventType::REMOVE_BREAKPOINT,
+            BreakpointEventDto {
+                map["source"].asString(),
+                static_cast<int>(map["line"].asInteger()),
+            }
         });
+    } else if (type == "step" || type == "step-into-function") {
+        breakpointEvents.push_back(DebuggingEvent {
+            type == "step"
+            ? DebuggingEventType::STEP
+            : DebuggingEventType::STEP_INTO_FUNCTION,
+            SignalEventDto {}
+        });
+        return true;
+    } else if (type == "resume") {
+        breakpointEvents.push_back(DebuggingEvent {
+            DebuggingEventType::RESUME, SignalEventDto {}});
+        return true;
     } else {
         logger.error() << "unsupported command '" << type << "'";
     }
-    return true;
+    return false;
 }
 
 void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
@@ -195,6 +209,6 @@ void DebuggingServer::setClient(u64id_t client) {
         std::make_unique<ClientConnection>(engine.getNetwork(), client);
 }
 
-std::vector<BreakpointEvent> DebuggingServer::pullBreakpointEvents() {
+std::vector<DebuggingEvent> DebuggingServer::pullEvents() {
     return std::move(breakpointEvents);
 }

@@ -190,4 +190,6 @@ public:
     devtools::DebuggingServer* getDebuggingServer() {
         return debuggingServer.get();
     }
+
+    void detachDebugger();
 };

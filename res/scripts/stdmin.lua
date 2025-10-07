@@ -2,8 +2,16 @@
 -- may be reused one global ffi buffer per lua_State
 
 local breakpoints = {}
+local dbg_steps_mode = false
+local hook_lock = false
 
 debug.sethook(function (e, line)
+    if dbg_steps_mode and not hook_lock then
+        hook_lock = true
+        debug.breakpoint()
+        debug.pull_events()
+    end
+    hook_lock = false
     local bps = breakpoints[line]
     if not bps then
         return
@@ -18,6 +26,9 @@ end, "l")
 
 local DBG_EVENT_SET_BREAKPOINT = 1
 local DBG_EVENT_RM_BREAKPOINT = 2
+local DBG_EVENT_STEP = 3
+local DBG_EVENT_STEP_INTO_FUNCTION = 4
+local DBG_EVENT_RESUME = 5
 local __pull_events = debug.__pull_events
 debug.__pull_events = nil
 
@@ -31,6 +42,10 @@ function debug.pull_events()
             debug.set_breakpoint(event[2], event[3])
         elseif event[1] == DBG_EVENT_RM_BREAKPOINT then
             debug.remove_breakpoint(event[2], event[3])
+        elseif event[1] == DBG_EVENT_STEP then
+            dbg_steps_mode = true
+        elseif event[1] == DBG_EVENT_RESUME then
+            dbg_steps_mode = false
         end
     end
 end
