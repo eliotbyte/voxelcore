@@ -31,12 +31,14 @@ std::string ClientConnection::read() {
             if (length <= 0) {
                 logger.error() << "invalid message length " << length;
             } else {
+                logger.info() << "message length " << length;
                 messageLength = length;
             }
         }
     } else if (connection->available() >= messageLength) {
         std::string string(messageLength, 0);
         connection->recv(string.data(), messageLength);
+        messageLength = 0;
         return string;
     }
     return "";
@@ -156,9 +158,20 @@ bool DebuggingServer::performCommand(
         engine.quit();
         connection->sendResponse("success");
     } else if (type == "detach") {
+        logger.info() << "detach received";
         connection->sendResponse("success");
         connection.reset();
         return false;
+    } else if (type == "set-breakpoint" || type == "remove-breakpoint") {
+        if (!map.has("source") || !map.has("line"))
+            return true;
+        breakpointEvents.push_back(BreakpointEvent {
+            type[0] == 's' 
+            ? BreakpointEventType::SET_BREAKPOINT
+            : BreakpointEventType::REMOVE_BREAKPOINT,
+            map["source"].asString(),
+            static_cast<int>(map["line"].asInteger()),
+        });
     } else {
         logger.error() << "unsupported command '" << type << "'";
     }
@@ -166,8 +179,6 @@ bool DebuggingServer::performCommand(
 }
 
 void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
-    logger.info() << "hit breakpoint:\n"
-                  << json::stringify(stackTrace, true, "    ");
     if (connection == nullptr) {
         return;
     }
@@ -182,4 +193,8 @@ void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
 void DebuggingServer::setClient(u64id_t client) {
     this->connection =
         std::make_unique<ClientConnection>(engine.getNetwork(), client);
+}
+
+std::vector<BreakpointEvent> DebuggingServer::pullBreakpointEvents() {
+    return std::move(breakpointEvents);
 }

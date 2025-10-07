@@ -279,6 +279,33 @@ static int l_debug_breakpoint(lua::State* L) {
     return 0;
 }
 
+static int l_debug_pull_events(lua::State* L) {
+    if (auto server = engine->getDebuggingServer()) {
+        auto events = server->pullBreakpointEvents();
+        if (events.empty()) {
+            return 0;
+        }
+        lua::createtable(L, events.size(), 0);
+        for (int i = 0; i < events.size(); i++) {
+            const auto& event = events[i];
+            lua::createtable(L, 3, 0);
+
+            lua::pushinteger(L, static_cast<int>(event.type));
+            lua::rawseti(L, 1);
+
+            lua::pushstring(L, event.source);
+            lua::rawseti(L, 2);
+
+            lua::pushinteger(L, event.line);
+            lua::rawseti(L, 3);
+
+            lua::rawseti(L, i + 1);
+        }
+        return 1;
+    }
+    return 0;
+}
+
 void initialize_libs_extends(lua::State* L) {
     if (lua::getglobal(L, "debug")) {
         lua::pushcfunction(L, lua::wrap<l_debug_error>);
@@ -295,6 +322,9 @@ void initialize_libs_extends(lua::State* L) {
 
         lua::pushcfunction(L, lua::wrap<l_debug_breakpoint>);
         lua::setfield(L, "breakpoint");
+
+        lua::pushcfunction(L, lua::wrap<l_debug_pull_events>);
+        lua::setfield(L, "__pull_events");
 
         lua::pop(L);
     }

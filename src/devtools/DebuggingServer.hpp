@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "typedefs.hpp"
 
@@ -35,6 +36,16 @@ namespace devtools {
         u64id_t connection;
     };
 
+    enum class BreakpointEventType {
+        SET_BREAKPOINT = 1,
+        REMOVE_BREAKPOINT,
+    };
+    struct BreakpointEvent {
+        BreakpointEventType type;
+        std::string source;
+        int line;
+    };
+
     class DebuggingServer {
     public:
         DebuggingServer(Engine& engine, const std::string& serverString);
@@ -44,10 +55,12 @@ namespace devtools {
         void onHitBreakpoint(dv::value&& stackTrace);
 
         void setClient(u64id_t client);
+        std::vector<BreakpointEvent> pullBreakpointEvents();
     private:
         Engine& engine;
         network::Server& server;
         std::unique_ptr<ClientConnection> connection;
+        std::vector<BreakpointEvent> breakpointEvents;
 
         bool performCommand(const std::string& type, const dv::value& map);
     };

@@ -1,5 +1,57 @@
 -- Lua has no parallelizm, also _set_data does not call any lua functions so
 -- may be reused one global ffi buffer per lua_State
+
+local breakpoints = {}
+
+debug.sethook(function (e, line)
+    local bps = breakpoints[line]
+    if not bps then
+        return
+    end
+    local source = debug.getinfo(2).source
+    if not bps[source] then
+        return
+    end
+    debug.breakpoint()
+    debug.pull_events()
+end, "l")
+
+local DBG_EVENT_SET_BREAKPOINT = 1
+local DBG_EVENT_RM_BREAKPOINT = 2
+local __pull_events = debug.__pull_events
+debug.__pull_events = nil
+
+function debug.pull_events()
+    local events = __pull_events()
+    if not events then
+        return
+    end
+    for i, event in ipairs(events) do
+        if event[1] == DBG_EVENT_SET_BREAKPOINT then
+            debug.set_breakpoint(event[2], event[3])
+        elseif event[1] == DBG_EVENT_RM_BREAKPOINT then
+            debug.remove_breakpoint(event[2], event[3])
+        end
+    end
+end
+
+function debug.set_breakpoint(source, line)
+    local bps = breakpoints[line]
+    if not bps then
+        bps = {}
+        breakpoints[line] = bps
+    end
+    bps[source] = true
+end
+
+function debug.remove_breakpoint(source, line)
+    local bps = breakpoints[line]
+    if not bps then
+        return
+    end
+    bps[source] = nil
+end
+
 local canvas_ffi_buffer
 local canvas_ffi_buffer_size = 0
 

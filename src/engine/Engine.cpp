@@ -318,6 +318,7 @@ void Engine::startPauseLoop() {
         }
     }
     while (!isQuitSignal()) {
+        network->update();
         if (!debuggingServer->update()) {
             debuggingServer.reset();
             break;
