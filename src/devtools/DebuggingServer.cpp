@@ -168,6 +168,15 @@ bool DebuggingServer::performCommand(
 void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
     logger.info() << "hit breakpoint:\n"
                   << json::stringify(stackTrace, true, "    ");
+    if (connection == nullptr) {
+        return;
+    }
+    connection->send(dv::object({
+        {"type", std::string("hit-breakpoint")},
+        {"stack", std::move(stackTrace)}
+    }));
+
+    engine.startPauseLoop();
 }
 
 void DebuggingServer::setClient(u64id_t client) {

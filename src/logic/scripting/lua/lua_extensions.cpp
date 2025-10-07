@@ -164,7 +164,85 @@ static int l_math_normal_random(lua::State* L) {
 
 constexpr inline int MAX_SHORT_STRING_LEN = 50;
 
-static dv::value create_stack_trace(lua_State* L, int initFrame = 2) {
+static dv::value collect_locals(lua::State* L, lua_Debug& frame) {
+    auto locals = dv::object();
+
+    int localIndex = 1;
+    const char* name;
+    while ((name = lua_getlocal(L, &frame, localIndex++))) {
+        if (name[0] == '(') {
+            lua::pop(L);
+            continue;
+        }
+        auto local = dv::object();
+
+        int type = lua::type(L, -1);
+        switch (type) {
+            case LUA_TNIL:
+                local["short"] = "nil";
+                local["type"] = "nil";
+                break;
+            case LUA_TBOOLEAN:
+                local["short"] = lua::toboolean(L, -1) ? "true" : "false";
+                local["type"] = "boolean";
+                break;
+            case LUA_TNUMBER: {
+                std::stringstream ss;
+                ss << lua::tonumber(L, -1);
+                local["short"] = ss.str();
+                local["type"] = "number";
+                break;
+            }
+            case LUA_TSTRING: {
+                const char* str = lua::tostring(L, -1);
+                if (strlen(str) > MAX_SHORT_STRING_LEN) {
+                    local["short"] = std::string(str, MAX_SHORT_STRING_LEN);
+                } else {
+                    local["short"] = str;
+                }
+                local["type"] = "string";
+                break;
+            }
+            case LUA_TTABLE:
+                local["short"] = "{...}";
+                local["type"] = "table";
+                break;
+            case LUA_TFUNCTION: {
+                std::stringstream ss;
+                ss << "function: 0x" << std::hex << lua::topointer(L, -1);
+                local["short"] = ss.str();
+                local["type"] = "function";
+                break;
+            }
+            case LUA_TUSERDATA: {
+                std::stringstream ss;
+                ss << "userdata: 0x" << std::hex << lua::topointer(L, -1);
+                local["short"] = ss.str();
+                local["type"] = "userdata";
+                break;
+            }
+            case LUA_TTHREAD: {
+                std::stringstream ss;
+                ss << "thread: 0x" << std::hex << lua::topointer(L, -1);
+                local["short"] = ss.str();
+                local["type"] = "thread";
+                break;
+            }
+            default: {
+                std::stringstream ss;
+                ss << "cdata: 0x" << std::hex << lua::topointer(L, -1);
+                local["short"] = ss.str();
+                local["type"] = "cdata";
+                break;
+            }
+        }
+        locals[name] = std::move(local);
+        lua::pop(L);
+    }
+    return locals;
+}
+
+static dv::value create_stack_trace(lua::State* L, int initFrame = 2) {
     auto entriesList = dv::list();
 
     lua_Debug frame;
@@ -187,82 +265,7 @@ static dv::value create_stack_trace(lua_State* L, int initFrame = 2) {
             entry["line"] = frame.currentline;
         }
         entry["what"] = frame.what;
-
-        auto locals = dv::object();
-
-        int localIndex = 1;
-        const char* name;
-        while ((name = lua_getlocal(L, &frame, localIndex++))) {
-            if (name[0] == '(') {
-                lua::pop(L);
-                continue;
-            }
-            auto local = dv::object();
-
-            int type = lua::type(L, -1);
-            switch (type) {
-                case LUA_TNIL:
-                    local["short"] = "nil";
-                    local["type"] = "nil";
-                    break;
-                case LUA_TBOOLEAN:
-                    local["short"] = lua::toboolean(L, -1) ? "true" : "false";
-                    local["type"] = "boolean";
-                    break;
-                case LUA_TNUMBER: {
-                    std::stringstream ss;
-                    ss << lua::tonumber(L, -1);
-                    local["short"] = ss.str();
-                    local["type"] = "number";
-                    break;
-                }
-                case LUA_TSTRING: {
-                    const char* str = lua::tostring(L, -1);
-                    if (strlen(str) > MAX_SHORT_STRING_LEN) {
-                        local["short"] = std::string(str, MAX_SHORT_STRING_LEN);
-                    } else {
-                        local["short"] = str;
-                    }
-                    local["type"] = "string";
-                    break;
-                }
-                case LUA_TTABLE:
-                    local["short"] = "{...}";
-                    local["type"] = "table";
-                    break;
-                case LUA_TFUNCTION: {
-                    std::stringstream ss;
-                    ss << "function: 0x" << std::hex << lua::topointer(L, -1);
-                    local["short"] = ss.str();
-                    local["type"] = "function";
-                    break;
-                }
-                case LUA_TUSERDATA: {
-                    std::stringstream ss;
-                    ss << "userdata: 0x" << std::hex << lua::topointer(L, -1);
-                    local["short"] = ss.str();
-                    local["type"] = "userdata";
-                    break;
-                }
-                case LUA_TTHREAD: {
-                    std::stringstream ss;
-                    ss << "thread: 0x" << std::hex << lua::topointer(L, -1);
-                    local["short"] = ss.str();
-                    local["type"] = "thread";
-                    break;
-                }
-                default: {
-                    std::stringstream ss;
-                    ss << "cdata: 0x" << std::hex << lua::topointer(L, -1);
-                    local["short"] = ss.str();
-                    local["type"] = "cdata";
-                    break;
-                }
-            }
-            locals[name] = std::move(local);
-            lua::pop(L);
-        }
-        entry["locals"] = std::move(locals);
+        entry["locals"] = collect_locals(L, frame);
         entriesList.add(std::move(entry));
         level++;
     }

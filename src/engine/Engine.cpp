@@ -309,6 +309,30 @@ void Engine::nextFrame() {
     input->pollEvents();
 }
 
+void Engine::startPauseLoop() {
+    bool initialCursorLocked = false;
+    if (!isHeadless()) {
+        initialCursorLocked = input->isCursorLocked();
+        if (initialCursorLocked) {
+            input->toggleCursor();
+        }
+    }
+    while (!isQuitSignal()) {
+        if (!debuggingServer->update()) {
+            debuggingServer.reset();
+            break;
+        }
+        if (isHeadless()) {
+            platform::sleep(1.0 / params.tps * 1000);
+        } else {
+            nextFrame();
+        }
+    }
+    if (initialCursorLocked) {
+        input->toggleCursor();
+    }
+}
+
 void Engine::renderFrame() {
     screen->draw(time.getDelta());
 

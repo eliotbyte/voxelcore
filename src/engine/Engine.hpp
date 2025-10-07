@@ -108,6 +108,7 @@ public:
     void updateFrontend();
     void renderFrame();
     void nextFrame();
+    void startPauseLoop();
     
     /// @brief Set screen (scene).
     /// nullptr may be used to delete previous screen before creating new one,
