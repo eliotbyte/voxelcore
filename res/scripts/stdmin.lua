@@ -3,11 +3,44 @@
 
 local breakpoints = {}
 local dbg_steps_mode = false
+local dbg_step_into_func = false
 local hook_lock = false
+local current_func
+local current_func_stack_size
+
+local _debug_getinfo = debug.getinfo
+
+-- 'return' hook not called for some functions
+-- todo: speedup
+local function calc_stack_size()
+    local s = debug.traceback("", 2)
+    local count = 0
+    for i in s:gmatch("\n") do
+        count = count + 1
+    end
+    return count
+end
 
 debug.sethook(function (e, line)
+    if e == "return" then
+        local info = _debug_getinfo(2)
+        if info.func == current_func then
+            current_func = nil
+        end
+    end
     if dbg_steps_mode and not hook_lock then
         hook_lock = true
+
+        if not dbg_step_into_func then
+            local func = _debug_getinfo(2).func
+            if func ~= current_func then
+                return
+            end
+            if current_func_stack_size ~= calc_stack_size() then
+                return
+            end
+        end
+        current_func = func
         debug.breakpoint()
         debug.pull_events()
     end
@@ -16,13 +49,15 @@ debug.sethook(function (e, line)
     if not bps then
         return
     end
-    local source = debug.getinfo(2).source
+    local source = _debug_getinfo(2).source
     if not bps[source] then
         return
     end
+    current_func = _debug_getinfo(2).func
+    current_func_stack_size = calc_stack_size()
     debug.breakpoint()
     debug.pull_events()
-end, "l")
+end, "lr")
 
 local DBG_EVENT_SET_BREAKPOINT = 1
 local DBG_EVENT_RM_BREAKPOINT = 2
@@ -44,8 +79,13 @@ function debug.pull_events()
             debug.remove_breakpoint(event[2], event[3])
         elseif event[1] == DBG_EVENT_STEP then
             dbg_steps_mode = true
+            dbg_step_into_func = false
+        elseif event[1] == DBG_EVENT_STEP_INTO_FUNCTION then
+            dbg_steps_mode = true
+            dbg_step_into_func = true
         elseif event[1] == DBG_EVENT_RESUME then
             dbg_steps_mode = false
+            dbg_step_into_func = false
         end
     end
 end
@@ -539,8 +579,6 @@ function file.readlines(path)
     end
     return lines
 end
-
-local _debug_getinfo = debug.getinfo
 
 function debug.count_frames()
     local frames = 1
