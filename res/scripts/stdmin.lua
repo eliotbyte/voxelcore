@@ -8,6 +8,7 @@ local current_func_stack_size
 local _debug_getinfo = debug.getinfo
 local _debug_getlocal = debug.getlocal
 local __pause = debug.pause
+local __error = error
 
 -- 'return' hook not called for some functions
 -- todo: speedup
@@ -118,6 +119,11 @@ function debug.remove_breakpoint(source, line)
         return
     end
     bps[source] = nil
+end
+
+function error(message, level)
+    __pause("paused on exception: " .. message)
+    __error(message, level)
 end
 
 -- Lua has no parallelizm, also _set_data does not call any lua functions so

@@ -188,22 +188,26 @@ static std::string get_short_value(lua::State* L, int idx, int type) {
             return "{...}";
         case LUA_TFUNCTION: {
             std::stringstream ss;
-            ss << "function: 0x" << std::hex << lua::topointer(L, idx);
+            ss << "function: 0x" << std::hex
+               << reinterpret_cast<ptrdiff_t>(lua::topointer(L, idx));
             return ss.str();
         }
         case LUA_TUSERDATA: {
             std::stringstream ss;
-            ss << "userdata: 0x" << std::hex << lua::topointer(L, idx);
+            ss << "userdata: 0x" << std::hex
+               << reinterpret_cast<ptrdiff_t>(lua::topointer(L, idx));
             return ss.str();
         }
         case LUA_TTHREAD: {
             std::stringstream ss;
-            ss << "thread: 0x" << std::hex << lua::topointer(L, idx);
+            ss << "thread: 0x" << std::hex
+               << reinterpret_cast<ptrdiff_t>(lua::topointer(L, idx));
             return ss.str();
         }
         default: {
             std::stringstream ss;
-            ss << "cdata: 0x" << std::hex << lua::topointer(L, idx);
+            ss << "cdata: 0x" << std::hex
+               << reinterpret_cast<ptrdiff_t>(lua::topointer(L, idx));
             return ss.str();
         }
     }
