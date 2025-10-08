@@ -17,12 +17,38 @@ ClientConnection::~ClientConnection() {
     }
 }
 
+bool ClientConnection::initiate(network::ReadableConnection* connection) {
+    if (connection->available() < 8) {
+        return false;
+    }
+    char buffer[8] {};
+    char expected[8] {};
+    std::memcpy(expected, VCDBG_MAGIC, sizeof(VCDBG_MAGIC));
+    expected[6] = VCDBG_VERSION >> 8;
+    expected[7] = VCDBG_VERSION & 0xFF;
+    connection->recv(buffer, sizeof(VCDBG_MAGIC));
+
+    connection->send(expected, sizeof(VCDBG_MAGIC));
+    if (std::memcmp(expected, buffer, sizeof(VCDBG_MAGIC)) == 0) {
+        initiated = true;
+        return false;
+    } else {
+        connection->close(true);
+        return true;
+    }
+}
+
 std::string ClientConnection::read() {
     auto connection = dynamic_cast<network::ReadableConnection*>(
         network.getConnection(this->connection, true)
     );
     if (connection == nullptr) {
         return "";
+    }
+    if (!initiated) {
+        if (initiate(connection)) {
+            return "";
+        }
     }
     if (messageLength == 0) {
         if (connection->available() >= sizeof(int32_t)) {
@@ -166,7 +192,7 @@ bool DebuggingServer::update() {
 bool DebuggingServer::performCommand(
     const std::string& type, const dv::value& map
 ) {
-    if (type == "connect" && !connectionEstablished) {
+    if (!connectionEstablished && type == "connect") {
         map.at("disconnect-action").get(disconnectAction);
         connectionEstablished = true;
         logger.info() << "client connection established";
@@ -275,8 +301,9 @@ void DebuggingServer::sendValue(
 }
 
 void DebuggingServer::setClient(u64id_t client) {
-    this->connection =
+    connection =
         std::make_unique<ClientConnection>(engine.getNetwork(), client);
+    connectionEstablished = false;
 }
 
 std::vector<DebuggingEvent> DebuggingServer::pullEvents() {

@@ -21,6 +21,9 @@ namespace dv {
 class Engine;
 
 namespace devtools {
+    inline constexpr const char VCDBG_MAGIC[8] = "vc-dbg\0";
+    inline constexpr int VCDBG_VERSION = 1;
+
     class ClientConnection {
     public:
         ClientConnection(network::Network& network, u64id_t connection)
@@ -37,6 +40,9 @@ namespace devtools {
         network::Network& network;
         size_t messageLength = 0;
         u64id_t connection;
+        bool initiated = false;
+    
+        bool initiate(network::ReadableConnection* connection);
     };
 
     enum class DebuggingEventType {
