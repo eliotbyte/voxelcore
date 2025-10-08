@@ -31,6 +31,8 @@ namespace devtools {
         std::string read();
         void send(const dv::value& message);
         void sendResponse(const std::string& type);
+
+        bool alive() const;
     private:
         network::Network& network;
         size_t messageLength = 0;

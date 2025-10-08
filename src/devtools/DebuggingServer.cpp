@@ -61,6 +61,10 @@ void ClientConnection::sendResponse(const std::string& type) {
     send(dv::object({{"type", type}}));
 }
 
+bool ClientConnection::alive() const {
+    return network.getConnection(this->connection, true) != nullptr;
+}
+
 static network::Server& create_tcp_server(
     DebuggingServer& dbgServer, Engine& engine, int port
 ) {
@@ -134,6 +138,10 @@ bool DebuggingServer::update() {
     }
     std::string message = connection->read();
     if (message.empty()) {
+        if (!connection->alive()) {
+            connection.reset();
+            return true;
+        }
         return false;
     }
     logger.debug() << "received: " << message;
@@ -144,7 +152,10 @@ bool DebuggingServer::update() {
             return false;
         }
         const auto& type = obj["type"].asString();
-        return performCommand(type, obj);
+        if (performCommand(type, obj)) {
+            connection->sendResponse("resumed");
+            return true;
+        }
     } catch (const std::runtime_error& err) {
         logger.error() << "could not to parse message: " << err.what();
     }
@@ -219,12 +230,17 @@ void DebuggingServer::pause(
     if (connection == nullptr) {
         return;
     }
-    connection->send(dv::object({
-        {"type", std::string("paused")},
-        {"reason", std::move(reason)},
-        {"message", std::move(message)},
-        {"stack", std::move(stackTrace)}
-    }));
+    auto response = dv::object({{"type", std::string("paused")}});
+    if (!reason.empty()) {
+        response["reason"] = std::move(reason);
+    }
+    if (!message.empty()) {
+        response["message"] = std::move(message);
+    }
+    if (stackTrace != nullptr) {
+        response["stack"] = std::move(stackTrace);
+    }
+    connection->send(std::move(response));
     engine.startPauseLoop();
 }
 
