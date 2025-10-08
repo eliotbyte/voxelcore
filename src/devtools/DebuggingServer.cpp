@@ -213,13 +213,16 @@ bool DebuggingServer::performCommand(
     return false;
 }
 
-void DebuggingServer::pause(std::string&& message, dv::value&& stackTrace) {
+void DebuggingServer::pause(
+    std::string&& reason, std::string&& message, dv::value&& stackTrace
+) {
     if (connection == nullptr) {
         return;
     }
     if (stackTrace != nullptr) {
         connection->send(dv::object({
             {"type", std::string("hit-breakpoint")},
+            {"reason", std::move(reason)},
             {"message", std::move(message)},
             {"stack", std::move(stackTrace)}
         }));

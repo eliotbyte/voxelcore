@@ -55,7 +55,7 @@ debug.sethook(function (e, line)
     end
     current_func = _debug_getinfo(2).func
     current_func_stack_size = calc_stack_size()
-    __pause("paused on breakpoint")
+    __pause("breakpoint")
     debug.pull_events()
 end, "lr")
 
@@ -122,7 +122,7 @@ function debug.remove_breakpoint(source, line)
 end
 
 function error(message, level)
-    __pause("paused on exception: " .. message)
+    __pause("exception", message)
     __error(message, level)
 end
 

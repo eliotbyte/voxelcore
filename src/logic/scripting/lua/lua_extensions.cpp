@@ -268,11 +268,17 @@ static dv::value create_stack_trace(lua::State* L, int initFrame = 2) {
 
 static int l_debug_pause(lua::State* L) {
     if (auto server = engine->getDebuggingServer()) {
+        std::string reason;
         std::string message;
         if (lua::isstring(L, 1)) {
-            message = lua::tolstring(L, 1);
+            reason = lua::tolstring(L, 1);
         }
-        server->pause(std::move(message), create_stack_trace(L));
+        if (lua::isstring(L, 2)) {
+            message = lua::tolstring(L, 2);
+        }
+        server->pause(
+            std::move(reason), std::move(message), create_stack_trace(L)
+        );
     }
     return 0;
 }
