@@ -213,15 +213,17 @@ bool DebuggingServer::performCommand(
     return false;
 }
 
-void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
+void DebuggingServer::pause(std::string&& message, dv::value&& stackTrace) {
     if (connection == nullptr) {
         return;
     }
-    connection->send(dv::object({
-        {"type", std::string("hit-breakpoint")},
-        {"stack", std::move(stackTrace)}
-    }));
-
+    if (stackTrace != nullptr) {
+        connection->send(dv::object({
+            {"type", std::string("hit-breakpoint")},
+            {"message", std::move(message)},
+            {"stack", std::move(stackTrace)}
+        }));
+    }
     engine.startPauseLoop();
 }
 
@@ -243,10 +245,6 @@ void DebuggingServer::sendValue(
         {"path", std::move(pathValue)},
         {"value", std::move(value)},
     }));
-}
-
-void DebuggingServer::pause() {
-    engine.startPauseLoop();
 }
 
 void DebuggingServer::setClient(u64id_t client) {

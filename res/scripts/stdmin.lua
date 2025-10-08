@@ -39,7 +39,7 @@ debug.sethook(function (e, line)
             end
         end
         current_func = func
-        debug.breakpoint()
+        debug.pause()
         debug.pull_events()
     end
     hook_lock = false
@@ -53,7 +53,7 @@ debug.sethook(function (e, line)
     end
     current_func = _debug_getinfo(2).func
     current_func_stack_size = calc_stack_size()
-    debug.breakpoint()
+    debug.pause()
     debug.pull_events()
 end, "lr")
 
@@ -65,6 +65,7 @@ local DBG_EVENT_RESUME = 5
 local DBG_EVENT_GET_VALUE = 6
 local __pull_events = debug.__pull_events
 local __sendvalue = debug.__sendvalue
+local __pause = debug.pause
 debug.__pull_events = nil
 debug.__sendvalue = nil
 
@@ -97,6 +98,7 @@ function debug.pull_events()
                 value = value[key]
             end
             __sendvalue(value, event[2], event[3], event[4])
+            __pause()
         end
     end
 end

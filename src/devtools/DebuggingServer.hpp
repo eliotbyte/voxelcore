@@ -73,8 +73,7 @@ namespace devtools {
         ~DebuggingServer();
 
         bool update();
-        void onHitBreakpoint(dv::value&& stackTrace);
-        void pause();
+        void pause(std::string&& message, dv::value&& stackTrace);
 
         void sendValue(dv::value&& value, int frame, int local, ValuePath&& path);
 

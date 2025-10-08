@@ -262,9 +262,13 @@ static dv::value create_stack_trace(lua::State* L, int initFrame = 2) {
     return entriesList;
 }
 
-static int l_debug_breakpoint(lua::State* L) {
+static int l_debug_pause(lua::State* L) {
     if (auto server = engine->getDebuggingServer()) {
-        server->onHitBreakpoint(create_stack_trace(L));
+        std::string message;
+        if (lua::isstring(L, 1)) {
+            message = lua::tolstring(L, 1);
+        }
+        server->pause(std::move(message), create_stack_trace(L));
     }
     return 0;
 }
@@ -376,8 +380,8 @@ void initialize_libs_extends(lua::State* L) {
         lua::pushcfunction(L, lua::wrap<l_debug_print>);
         lua::setfield(L, "print");
 
-        lua::pushcfunction(L, lua::wrap<l_debug_breakpoint>);
-        lua::setfield(L, "breakpoint");
+        lua::pushcfunction(L, lua::wrap<l_debug_pause>);
+        lua::setfield(L, "pause");
 
         lua::pushcfunction(L, lua::wrap<l_debug_pull_events>);
         lua::setfield(L, "__pull_events");
