@@ -9,6 +9,7 @@ local _debug_getinfo = debug.getinfo
 local _debug_getlocal = debug.getlocal
 local __pause = debug.pause
 local __error = error
+local __sethook = debug.sethook
 
 -- 'return' hook not called for some functions
 -- todo: speedup
@@ -21,43 +22,46 @@ local function calc_stack_size()
     return count
 end
 
-debug.sethook(function (e, line)
-    if e == "return" then
-        local info = _debug_getinfo(2)
-        if info.func == current_func then
-            current_func = nil
+local is_debugging = debug.is_debugging()
+if is_debugging then
+    __sethook(function (e, line)
+        if e == "return" then
+            local info = _debug_getinfo(2)
+            if info.func == current_func then
+                current_func = nil
+            end
         end
-    end
-    if dbg_steps_mode and not hook_lock then
-        hook_lock = true
+        if dbg_steps_mode and not hook_lock then
+            hook_lock = true
 
-        if not dbg_step_into_func then
-            local func = _debug_getinfo(2).func
-            if func ~= current_func then
-                return
+            if not dbg_step_into_func then
+                local func = _debug_getinfo(2).func
+                if func ~= current_func then
+                    return
+                end
+                if current_func_stack_size ~= calc_stack_size() then
+                    return
+                end
             end
-            if current_func_stack_size ~= calc_stack_size() then
-                return
-            end
+            current_func = func
+            __pause("step")
+            debug.pull_events()
         end
-        current_func = func
-        __pause("step")
+        hook_lock = false
+        local bps = breakpoints[line]
+        if not bps then
+            return
+        end
+        local source = _debug_getinfo(2).source
+        if not bps[source] then
+            return
+        end
+        current_func = _debug_getinfo(2).func
+        current_func_stack_size = calc_stack_size()
+        __pause("breakpoint")
         debug.pull_events()
-    end
-    hook_lock = false
-    local bps = breakpoints[line]
-    if not bps then
-        return
-    end
-    local source = _debug_getinfo(2).source
-    if not bps[source] then
-        return
-    end
-    current_func = _debug_getinfo(2).func
-    current_func_stack_size = calc_stack_size()
-    __pause("breakpoint")
-    debug.pull_events()
-end, "lr")
+    end, "lr")
+end
 
 local DBG_EVENT_SET_BREAKPOINT = 1
 local DBG_EVENT_RM_BREAKPOINT = 2
@@ -71,6 +75,13 @@ debug.__pull_events = nil
 debug.__sendvalue = nil
 
 function debug.pull_events()
+    if not is_debugging then
+        return
+    end
+    if not debug.is_debugging() then
+        is_debugging = false
+        __sethook()
+    end
     local events = __pull_events()
     if not events then
         return
@@ -122,7 +133,9 @@ function debug.remove_breakpoint(source, line)
 end
 
 function error(message, level)
-    __pause("exception", message)
+    if is_debugging then
+        __pause("exception", message)
+    end
     __error(message, level)
 end
 

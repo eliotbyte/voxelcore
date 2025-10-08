@@ -376,6 +376,10 @@ static int l_debug_pull_events(lua::State* L) {
     return 1;
 }
 
+static int l_debug_is_debugging(lua::State* L) {
+    return lua::pushboolean(L, engine->getDebuggingServer() != nullptr);
+}
+
 void initialize_libs_extends(lua::State* L) {
     if (lua::getglobal(L, "debug")) {
         lua::pushcfunction(L, lua::wrap<l_debug_error>);
@@ -398,6 +402,9 @@ void initialize_libs_extends(lua::State* L) {
 
         lua::pushcfunction(L, lua::wrap<l_debug_sendvalue>);
         lua::setfield(L, "__sendvalue");
+
+        lua::pushcfunction(L, lua::wrap<l_debug_is_debugging>);
+        lua::setfield(L, "is_debugging");
 
         lua::pop(L);
     }
