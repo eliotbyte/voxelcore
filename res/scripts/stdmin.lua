@@ -41,7 +41,7 @@ debug.sethook(function (e, line)
             end
         end
         current_func = func
-        __pause()
+        __pause("step")
         debug.pull_events()
     end
     hook_lock = false

@@ -219,14 +219,12 @@ void DebuggingServer::pause(
     if (connection == nullptr) {
         return;
     }
-    if (stackTrace != nullptr) {
-        connection->send(dv::object({
-            {"type", std::string("hit-breakpoint")},
-            {"reason", std::move(reason)},
-            {"message", std::move(message)},
-            {"stack", std::move(stackTrace)}
-        }));
-    }
+    connection->send(dv::object({
+        {"type", std::string("paused")},
+        {"reason", std::move(reason)},
+        {"message", std::move(message)},
+        {"stack", std::move(stackTrace)}
+    }));
     engine.startPauseLoop();
 }
 
