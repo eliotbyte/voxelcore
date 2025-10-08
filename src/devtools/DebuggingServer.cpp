@@ -139,8 +139,9 @@ bool DebuggingServer::update() {
     std::string message = connection->read();
     if (message.empty()) {
         if (!connection->alive()) {
+            bool status = performCommand(disconnectAction, dv::object());
             connection.reset();
-            return true;
+            return status;
         }
         return false;
     }
@@ -165,6 +166,15 @@ bool DebuggingServer::update() {
 bool DebuggingServer::performCommand(
     const std::string& type, const dv::value& map
 ) {
+    if (type == "connect" && !connectionEstablished) {
+        map.at("disconnect-action").get(disconnectAction);
+        connectionEstablished = true;
+        logger.info() << "client connection established";
+        connection->sendResponse("success");
+    }
+    if (!connectionEstablished) {
+        return false;
+    }
     if (type == "terminate") {
         engine.quit();
         connection->sendResponse("success");
@@ -271,4 +281,8 @@ void DebuggingServer::setClient(u64id_t client) {
 
 std::vector<DebuggingEvent> DebuggingServer::pullEvents() {
     return std::move(breakpointEvents);
+}
+
+void DebuggingServer::setDisconnectAction(const std::string& action) {
+    disconnectAction = action;
 }

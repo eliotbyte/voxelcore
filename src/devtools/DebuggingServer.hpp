@@ -83,11 +83,15 @@ namespace devtools {
 
         void setClient(u64id_t client);
         std::vector<DebuggingEvent> pullEvents();
+
+        void setDisconnectAction(const std::string& action);
     private:
         Engine& engine;
         network::Server& server;
         std::unique_ptr<ClientConnection> connection;
+        bool connectionEstablished = false;
         std::vector<DebuggingEvent> breakpointEvents;
+        std::string disconnectAction = "resume";
 
         bool performCommand(
             const std::string& type, const dv::value& map
