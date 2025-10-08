@@ -43,6 +43,7 @@ namespace devtools {
         STEP,
         STEP_INTO_FUNCTION,
         RESUME,
+        GET_VALUE,
     };
 
     struct BreakpointEventDto {
@@ -53,9 +54,17 @@ namespace devtools {
     struct SignalEventDto {
     };
 
+    using ValuePath = std::vector<std::variant<std::string, int>>;
+
+    struct GetValueEventDto {
+        int frame;
+        int localIndex;
+        ValuePath path;
+    };
+
     struct DebuggingEvent {
         DebuggingEventType type;
-        std::variant<BreakpointEventDto, SignalEventDto> data;
+        std::variant<BreakpointEventDto, SignalEventDto, GetValueEventDto> data;
     };
 
     class DebuggingServer {
@@ -65,6 +74,9 @@ namespace devtools {
 
         bool update();
         void onHitBreakpoint(dv::value&& stackTrace);
+        void pause();
+
+        void sendValue(dv::value&& value, int frame, int local, ValuePath&& path);
 
         void setClient(u64id_t client);
         std::vector<DebuggingEvent> pullEvents();

@@ -249,7 +249,7 @@ namespace lua {
     inline lua::Number tonumber(lua::State* L, int idx) {
 #ifndef NDEBUG
         if (lua_type(L, idx) != LUA_TNUMBER && !lua_isnoneornil(L, idx)) {
-            throw std::runtime_error("integer expected");
+            throw std::runtime_error("number expected");
         }
 #endif
         return lua_tonumber(L, idx);

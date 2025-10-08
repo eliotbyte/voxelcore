@@ -186,6 +186,27 @@ bool DebuggingServer::performCommand(
         breakpointEvents.push_back(DebuggingEvent {
             DebuggingEventType::RESUME, SignalEventDto {}});
         return true;
+    } else if (type == "get-value") {
+        if (!map.has("frame") || !map.has("local") || !map.has("path"))
+            return false;
+
+        int frame = map["frame"].asInteger();
+        int localIndex = map["local"].asInteger();
+
+        ValuePath path;
+        for (const auto& segment : map["path"]) {
+            if (segment.isString()) {
+                path.emplace_back(segment.asString());
+            } else {
+                path.emplace_back(static_cast<int>(segment.asInteger()));
+            }
+        }
+        breakpointEvents.push_back(DebuggingEvent {
+            DebuggingEventType::GET_VALUE, GetValueEventDto {
+                frame, localIndex, std::move(path)
+            }
+        });
+        return true;
     } else {
         logger.error() << "unsupported command '" << type << "'";
     }
@@ -201,6 +222,30 @@ void DebuggingServer::onHitBreakpoint(dv::value&& stackTrace) {
         {"stack", std::move(stackTrace)}
     }));
 
+    engine.startPauseLoop();
+}
+
+void DebuggingServer::sendValue(
+    dv::value&& value, int frame, int local, ValuePath&& path
+) {
+    auto pathValue = dv::list();
+    for (const auto& segment : path) {
+        if (auto string = std::get_if<std::string>(&segment)) {
+            pathValue.add(*string);
+        } else {
+            pathValue.add(std::get<int>(segment));
+        }
+    }
+    connection->send(dv::object({
+        {"type", std::string("value")},
+        {"frame", frame},
+        {"local", local},
+        {"path", std::move(pathValue)},
+        {"value", std::move(value)},
+    }));
+}
+
+void DebuggingServer::pause() {
     engine.startPauseLoop();
 }
 

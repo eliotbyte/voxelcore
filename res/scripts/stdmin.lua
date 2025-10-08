@@ -1,6 +1,3 @@
--- Lua has no parallelizm, also _set_data does not call any lua functions so
--- may be reused one global ffi buffer per lua_State
-
 local breakpoints = {}
 local dbg_steps_mode = false
 local dbg_step_into_func = false
@@ -9,6 +6,7 @@ local current_func
 local current_func_stack_size
 
 local _debug_getinfo = debug.getinfo
+local _debug_getlocal = debug.getlocal
 
 -- 'return' hook not called for some functions
 -- todo: speedup
@@ -64,8 +62,11 @@ local DBG_EVENT_RM_BREAKPOINT = 2
 local DBG_EVENT_STEP = 3
 local DBG_EVENT_STEP_INTO_FUNCTION = 4
 local DBG_EVENT_RESUME = 5
+local DBG_EVENT_GET_VALUE = 6
 local __pull_events = debug.__pull_events
+local __sendvalue = debug.__sendvalue
 debug.__pull_events = nil
+debug.__sendvalue = nil
 
 function debug.pull_events()
     local events = __pull_events()
@@ -86,6 +87,16 @@ function debug.pull_events()
         elseif event[1] == DBG_EVENT_RESUME then
             dbg_steps_mode = false
             dbg_step_into_func = false
+        elseif event[1] == DBG_EVENT_GET_VALUE then
+            local _, value = _debug_getlocal(event[2] + 3, event[3])
+            for _, key in ipairs(event[4]) do
+                if value == nil then
+                    value = "error: index nil value"
+                    break
+                end
+                value = value[key]
+            end
+            __sendvalue(value, event[2], event[3], event[4])
         end
     end
 end
@@ -107,6 +118,8 @@ function debug.remove_breakpoint(source, line)
     bps[source] = nil
 end
 
+-- Lua has no parallelizm, also _set_data does not call any lua functions so
+-- may be reused one global ffi buffer per lua_State
 local canvas_ffi_buffer
 local canvas_ffi_buffer_size = 0
 
