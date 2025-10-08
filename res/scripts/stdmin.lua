@@ -7,6 +7,7 @@ local current_func_stack_size
 
 local _debug_getinfo = debug.getinfo
 local _debug_getlocal = debug.getlocal
+local __pause = debug.pause
 
 -- 'return' hook not called for some functions
 -- todo: speedup
@@ -39,7 +40,7 @@ debug.sethook(function (e, line)
             end
         end
         current_func = func
-        debug.pause()
+        __pause()
         debug.pull_events()
     end
     hook_lock = false
@@ -53,7 +54,7 @@ debug.sethook(function (e, line)
     end
     current_func = _debug_getinfo(2).func
     current_func_stack_size = calc_stack_size()
-    debug.pause()
+    __pause("paused on breakpoint")
     debug.pull_events()
 end, "lr")
 
@@ -65,7 +66,6 @@ local DBG_EVENT_RESUME = 5
 local DBG_EVENT_GET_VALUE = 6
 local __pull_events = debug.__pull_events
 local __sendvalue = debug.__sendvalue
-local __pause = debug.pause
 debug.__pull_events = nil
 debug.__sendvalue = nil
 
