@@ -10,6 +10,7 @@
 
 #ifdef _WIN32
 #include <curl/curl.h>
+#define SHUT_RDWR SD_BOTH
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -231,7 +232,7 @@ public:
             readBatch.clear();
 
             if (state != ConnectionState::CLOSED) {
-                shutdown(descriptor, 2);
+                shutdown(descriptor, SHUT_RDWR);
                 closesocket(descriptor);
             }
         }
@@ -304,12 +305,29 @@ class SocketTcpServer : public TcpServer {
     bool open = true;
     std::unique_ptr<std::thread> thread = nullptr;
     int port;
+    int maxConnected = -1;
 public:
     SocketTcpServer(u64id_t id, Network* network, SOCKET descriptor, int port)
     : id(id), network(network), descriptor(descriptor), port(port) {}
 
     ~SocketTcpServer() {
         closeSocket();
+    }
+
+    void setMaxClientsConnected(int count) override {
+        maxConnected = count;
+    }
+
+    void update() override {
+        std::vector<u64id_t> clients;
+        for (u64id_t cid : this->clients) {
+            if (auto client = network->getConnection(cid, true)) {
+                if (client->getState() != ConnectionState::CLOSED) {
+                    clients.emplace_back(cid);
+                }
+            }
+        }
+        std::swap(clients, this->clients);
     }
 
     void startListen(ConnectCallback handler) override {
@@ -327,6 +345,11 @@ public:
                 if ((clientDescriptor = accept(descriptor, (sockaddr*)&address, &addrlen)) == -1) {
                     close();
                     break;
+                }
+                if (maxConnected >= 0 && clients.size() >= maxConnected) {
+                    logger.info() << "refused connection attempt from " << to_string(address);
+                    closesocket(clientDescriptor);
+                    continue;
                 }
                 logger.info() << "client connected: " << to_string(address);
                 auto socket = std::make_shared<SocketTcpConnection>(
@@ -574,6 +597,8 @@ public:
     ~SocketUdpServer() override {
         SocketUdpServer::close();
     }
+
+    void update() override {}
 
     void startListen(ServerDatagramCallback handler) override {
         callback = std::move(handler);

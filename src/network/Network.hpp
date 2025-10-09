@@ -3,13 +3,12 @@
 #include "commons.hpp"
 
 namespace network {
-    class TcpConnection : public Connection {
+    class TcpConnection : public ReadableConnection {
     public:
         ~TcpConnection() override = default;
 
         virtual void connect(runnable callback) = 0;
-        virtual int recv(char* buffer, size_t length) = 0;
-        virtual int available() = 0;
+
         virtual void setNoDelay(bool noDelay) = 0;
         [[nodiscard]] virtual bool isNoDelay() const = 0;
 
@@ -37,6 +36,8 @@ namespace network {
         [[nodiscard]] TransportType getTransportType() const noexcept override {
             return TransportType::TCP;
         }
+
+        virtual void setMaxClientsConnected(int count) = 0;
     };
 
     class UdpServer : public Server {

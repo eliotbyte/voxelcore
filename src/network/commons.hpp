@@ -75,9 +75,17 @@ namespace network {
         bool isprivate = false;
     };
 
+    class ReadableConnection : public Connection {
+    public:
+        virtual int recv(char* buffer, size_t length) = 0;
+        virtual int available() = 0;
+    };
+
     class Server {
     public:
         virtual ~Server() = default;
+
+        virtual void update() = 0;
         virtual void close() = 0;
         virtual bool isOpen() = 0;
         [[nodiscard]] virtual TransportType getTransportType() const noexcept = 0;
