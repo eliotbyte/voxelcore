@@ -6,7 +6,6 @@
 #include <unordered_map>
 
 #include "data/dv.hpp"
-#include "lua_custom_types.hpp"
 #include "lua_wrapper.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

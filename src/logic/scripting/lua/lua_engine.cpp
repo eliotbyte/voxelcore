@@ -8,7 +8,10 @@
 #include "debug/Logger.hpp"
 #include "util/stringutil.hpp"
 #include "libs/api_lua.hpp"
-#include "lua_custom_types.hpp"
+#include "usertypes/lua_type_heightmap.hpp"
+#include "usertypes/lua_type_voxelfragment.hpp"
+#include "usertypes/lua_type_canvas.hpp"
+#include "usertypes/lua_type_random.hpp"
 #include "engine/Engine.hpp"
 
 static debug::Logger logger("lua-state");

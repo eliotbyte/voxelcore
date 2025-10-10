@@ -17,7 +17,6 @@
 #include "logic/BlocksController.hpp"
 #include "logic/LevelController.hpp"
 #include "lua/lua_engine.hpp"
-#include "lua/lua_custom_types.hpp"
 #include "maths/Heightmap.hpp"
 #include "objects/Player.hpp"
 #include "util/stringutil.hpp"

@@ -1,11 +1,12 @@
-#include <unordered_map>
+#include "lua_type_canvas.hpp"
 
 #include "graphics/core/ImageData.hpp"
 #include "graphics/core/Texture.hpp"
-#include "logic/scripting/lua/lua_custom_types.hpp"
 #include "logic/scripting/lua/lua_util.hpp"
 #include "engine/Engine.hpp"
 #include "assets/Assets.hpp"
+
+#include <unordered_map>
 
 using namespace lua;
 
