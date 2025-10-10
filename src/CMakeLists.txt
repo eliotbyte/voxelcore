@@ -108,7 +108,7 @@ target_compile_options(
            -Wduplicated-branches
            -Wduplicated-cond
            -Wzero-as-null-pointer-constant
-           -Wsign-conversion
+           #-Wsign-conversion
            -Wcast-align
            -Wpointer-arith
            -Wundef
