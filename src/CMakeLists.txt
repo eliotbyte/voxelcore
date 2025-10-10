@@ -100,6 +100,7 @@ target_compile_options(
            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
            -Wall
            -Wextra
+           -Wpedantic
            # additional warnings
            -Wformat-nonliteral
            -Wcast-align
