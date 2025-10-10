@@ -91,6 +91,7 @@ target_compile_options(
            /wd4245 # conversion from 'int' to 'const size_t', signed/unsigned
                    # mismatch
            /wd4100 # unreferenced formal parameter
+           /wd4457 # declaration of 'var' hides function parameter 
            /wd4458 # declaration of 'var' hides class member
            /wd4459 # declaration of 'var' hides global declaration 
            /wd4101 # 'var': unreferenced local variable
