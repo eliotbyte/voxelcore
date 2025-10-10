@@ -104,6 +104,11 @@ target_compile_options(
            -Wpedantic
            # additional warnings
            -Wformat-nonliteral
+           -Wctor-dtor-privacy
+           -Wduplicated-branches
+           -Wduplicated-cond
+           -Wzero-as-null-pointer-constant
+           -Wsign-conversion
            -Wcast-align
            -Wpointer-arith
            -Wundef
@@ -111,6 +116,7 @@ target_compile_options(
            -Wno-unused-parameter
            -Wno-sign-compare
            -Wno-unknown-pragmas
+           -Wno-gnu-anonymous-struct
            >)
 
 target_link_options(
