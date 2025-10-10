@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "../lua_commons.hpp"
 
 class VoxelFragment;
