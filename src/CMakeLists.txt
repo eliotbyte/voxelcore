@@ -92,6 +92,7 @@ target_compile_options(
                    # mismatch
            /wd4100 # unreferenced formal parameter
            /wd4458 # declaration of 'var' hides class member
+           /wd4459 # declaration of 'var' hides global declaration 
            /wd4101 # 'var': unreferenced local variable
            /wd4388 # 'token' : signed/unsigned mismatch
            /wd4018 # '>': signed/unsigned mismatch
