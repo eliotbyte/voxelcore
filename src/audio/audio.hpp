@@ -121,6 +121,10 @@ namespace audio {
         /// (always equals bufferSize if seekable and looped)
         virtual size_t readFully(char* buffer, size_t bufferSize, bool loop);
 
+        /// @brief Read available data to buffer
+        /// @param buffer destination buffer
+        /// @param bufferSize destination buffer size
+        /// @return count of received bytes or PCMStream::ERROR
         virtual size_t read(char* buffer, size_t bufferSize) = 0;
 
         /// @brief Close stream

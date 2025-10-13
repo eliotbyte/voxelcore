@@ -67,6 +67,26 @@ inline audio::speakerid_t play_stream(
     if (channel == -1) {
         return 0;
     }
+    if (!scripting::engine->isHeadless()) {
+        auto assets = scripting::engine->getAssets();
+
+        auto stream = assets->getShared<audio::PCMStream>(filename);
+        if (stream) {
+            return audio::play(
+                audio::open_stream(std::move(stream), true),
+                glm::vec3(
+                    static_cast<float>(x),
+                    static_cast<float>(y),
+                    static_cast<float>(z)
+                ),
+                relative,
+                volume,
+                pitch,
+                loop,
+                channel
+            );
+        }
+    }
     io::path file;
     if (std::strchr(filename, ':')) {
         file = std::string(filename);

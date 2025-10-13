@@ -116,6 +116,17 @@ function on_hud_open()
     configure_SSAO()
 
     hud.default_hand_controller = update_hand
+
+    local stream = PCMStream(44100, 1, 8)
+    stream:share("test-stream")
+    local bytes = Bytearray(44100 * 16)
+    for i=1,#bytes do
+        local x = math.sin(i * 0.08) * 127 + 128
+        bytes[i] = x
+    end
+    stream:feed(bytes)
+
+    audio.play_stream_2d("test-stream", 0.05, 1.0)
 end
 
 function on_hud_render()

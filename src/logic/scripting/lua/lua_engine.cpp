@@ -12,6 +12,7 @@
 #include "usertypes/lua_type_voxelfragment.hpp"
 #include "usertypes/lua_type_canvas.hpp"
 #include "usertypes/lua_type_random.hpp"
+#include "usertypes/lua_type_pcmstream.hpp"
 #include "engine/Engine.hpp"
 
 static debug::Logger logger("lua-state");
@@ -130,6 +131,7 @@ void lua::init_state(State* L, StateType stateType) {
     newusertype<LuaHeightmap>(L);
     newusertype<LuaVoxelFragment>(L);
     newusertype<LuaCanvas>(L);
+    newusertype<LuaPCMStream>(L);
 }
 
 void lua::initialize(const EnginePaths& paths, const CoreParameters& params) {
