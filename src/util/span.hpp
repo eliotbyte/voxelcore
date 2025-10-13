@@ -15,7 +15,7 @@ namespace util {
 
         const T& at(size_t index) const {
             if (index >= length) {
-                throw std::out_of_range();
+                throw std::out_of_range("index is out of range");
             }
             return ptr[index];
         }
