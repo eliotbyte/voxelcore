@@ -71,9 +71,16 @@ namespace audio {
         std::unique_ptr<Sound> createSound(
             std::shared_ptr<PCM> pcm, bool keepPCM
         ) override;
+
         std::unique_ptr<Stream> openStream(
             std::shared_ptr<PCMStream> stream, bool keepSource
         ) override;
+
+        std::unique_ptr<InputDevice> openInputDevice(
+            uint sampleRate, uint channels, uint bitsPerSample
+        ) override {
+            return nullptr;
+        }
 
         void setListener(
             glm::vec3 position, glm::vec3 velocity, glm::vec3 at, glm::vec3 up

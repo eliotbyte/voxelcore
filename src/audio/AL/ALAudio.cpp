@@ -37,6 +37,38 @@ std::unique_ptr<Speaker> ALSound::newInstance(int priority, int channel) const {
     return speaker;
 }
 
+ALInputDevice::ALInputDevice(
+    ALAudio* al, ALCdevice* device, uint channels, uint bitsPerSample
+)
+    : al(al), device(device), channels(channels), bitsPerSample(bitsPerSample) {
+}
+
+ALInputDevice::~ALInputDevice() {
+    alcCaptureCloseDevice(device);
+}
+
+void ALInputDevice::startCapture() {
+    AL_CHECK(alcCaptureStart(device));
+}
+
+void ALInputDevice::stopCapture() {
+    AL_CHECK(alcCaptureStop(device));
+}
+
+uint ALInputDevice::getChannels() const {
+    return channels;
+}
+
+size_t ALInputDevice::read(char* buffer, size_t bufferSize) {
+    ALCint samplesCount;
+    AL_CHECK(alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &samplesCount));
+    size_t samplesRead = std::min<ALCsizei>(
+        samplesCount, bufferSize / channels / (bitsPerSample >> 3)
+    );
+    AL_CHECK(alcCaptureSamples(device, buffer, samplesRead));
+    return samplesRead;
+}
+
 ALStream::ALStream(
     ALAudio* al, std::shared_ptr<PCMStream> source, bool keepSource
 )
@@ -409,6 +441,21 @@ std::unique_ptr<Stream> ALAudio::openStream(
     std::shared_ptr<PCMStream> stream, bool keepSource
 ) {
     return std::make_unique<ALStream>(this, stream, keepSource);
+}
+
+std::unique_ptr<InputDevice> ALAudio::openInputDevice(
+    uint sampleRate, uint channels, uint bitsPerSample
+) {
+    uint bps = bitsPerSample >> 3;
+    AL_CHECK(
+        ALCdevice* device = alcCaptureOpenDevice(
+            nullptr,
+            sampleRate,
+            AL::to_al_format(channels, bps),
+            sampleRate * channels * bps
+        )
+    );
+    return std::make_unique<ALInputDevice>(this, device, channels, bps);
 }
 
 std::unique_ptr<ALAudio> ALAudio::create() {

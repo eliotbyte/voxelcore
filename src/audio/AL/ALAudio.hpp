@@ -82,6 +82,26 @@ namespace audio {
         static inline constexpr uint STREAM_BUFFERS = 3;
     };
 
+    class ALInputDevice : public InputDevice {
+    public:
+        ALInputDevice(
+            ALAudio* al, ALCdevice* device, uint channels, uint bitsPerSample
+        );
+        ~ALInputDevice() override;
+
+        void startCapture() override;
+        void stopCapture() override;
+
+        uint getChannels() const override;
+
+        size_t read(char* buffer, size_t bufferSize) override;
+    private:
+        ALAudio* al;
+        ALCdevice* device;
+        uint channels;
+        uint bitsPerSample;
+    };
+
     /// @brief AL source adapter
     class ALSpeaker : public Speaker {
         ALAudio* al;
@@ -157,8 +177,13 @@ namespace audio {
         std::unique_ptr<Sound> createSound(
             std::shared_ptr<PCM> pcm, bool keepPCM
         ) override;
+
         std::unique_ptr<Stream> openStream(
             std::shared_ptr<PCMStream> stream, bool keepSource
+        ) override;
+
+        std::unique_ptr<InputDevice> openInputDevice(
+            uint sampleRate, uint channels, uint bitsPerSample
         ) override;
 
         void setListener(
