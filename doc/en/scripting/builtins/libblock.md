@@ -101,7 +101,7 @@ block.set_rotation(x: int, y: int, z: int, rotation: int)
 
 ## Extended blocks
 
-Extended blocks are blocks with size greather than 1x1x1
+Extended blocks are blocks with size greater than 1x1x1
 
 ```lua
 -- Checks whether the block is extended.

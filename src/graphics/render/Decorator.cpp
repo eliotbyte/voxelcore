@@ -25,7 +25,7 @@
 
 namespace fs = std::filesystem;
 
-/// @brief Not greather than 64 for this BIG_PRIME value
+/// @brief Not greater than 64 for this BIG_PRIME value
 inline constexpr int UPDATE_AREA_DIAMETER = 32;
 /// @brief Number of blocks in the volume
 inline constexpr int UPDATE_BLOCKS =
