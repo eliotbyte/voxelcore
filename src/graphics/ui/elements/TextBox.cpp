@@ -661,7 +661,7 @@ int TextBox::calcIndexAt(int x, int y) const {
     line = std::min(line, label->getLinesNumber() - 1);
     size_t lineLength = getLineLength(line);
     uint offset = 0;
-    while (lcoord.x + rawTextCache.metrics.calcWidth(labelText, offset) < x &&
+    while (lcoord.x + rawTextCache.metrics.calcWidth(labelText, 0, offset) < x &&
            offset < lineLength - 1) {
         offset++;
     }

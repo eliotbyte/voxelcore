@@ -182,7 +182,6 @@ std::unique_ptr<Process> scripting::start_coroutine(const io::path& script) {
     lua::pushstring(L, pack.id);
     lua::setfield(L, "PACK_ID");
 
-    lua::dump_stack(L);
     if(!lua::getglobal(L, "__vc__pack_envs")) {
         lua::createtable(L, 0, 0);
         lua::setglobal(L, "__vc__pack_envs");
