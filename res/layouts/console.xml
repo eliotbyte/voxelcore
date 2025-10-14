@@ -33,4 +33,5 @@
              onup="on_history_up()"
              ondown="on_history_down()">
     </textbox>
+    <textbox size="200" margin="20" multiline="true" text-wrap="true" autoresize="false"/>
 </container>

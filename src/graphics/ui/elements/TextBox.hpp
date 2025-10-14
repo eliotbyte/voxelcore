@@ -44,7 +44,7 @@ namespace gui {
         runnable onDownPressed;
         /// @brief Is current input valid
         bool valid = true;
-        /// @brief Text input pointer, value may be greather than text length
+        /// @brief Text input pointer, value may be greater than text length
         size_t caret = 0;
         /// @brief Actual local (line) position of the caret on vertical move
         size_t maxLocalCaret = 0;

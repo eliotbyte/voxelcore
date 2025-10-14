@@ -276,7 +276,7 @@ public:
         /// @brief does the block emit any lights
         bool emissive = false;
 
-        // @brief block size is greather than 1x1x1
+        // @brief block size is greater than 1x1x1
         bool extended = false;
 
         /// @brief set of hitboxes sets with all coord-systems precalculated
