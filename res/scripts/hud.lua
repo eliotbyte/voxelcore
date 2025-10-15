@@ -55,6 +55,8 @@ local function update_hand()
     skeleton.set_model("hand", bone, item.model_name(itemid))
 end
 
+local stream
+
 function on_hud_open()
     input.add_callback("player.pick", function ()
         if hud.is_paused() or hud.is_inventory_open() then
@@ -117,16 +119,16 @@ function on_hud_open()
 
     hud.default_hand_controller = update_hand
 
-    local stream = PCMStream(44100, 1, 8)
+    stream = PCMStream(44100, 1, 16)
     stream:share("test-stream")
-    local bytes = Bytearray(44100 * 16)
+    local bytes = Bytearray(44100 / 8)
     for i=1,#bytes do
-        local x = math.sin(i * 0.08) * 127 + 128
+        local x = math.sin(i * 0.08) * 1 + 0
         bytes[i] = x
     end
     stream:feed(bytes)
 
-    audio.play_stream_2d("test-stream", 0.05, 1.0)
+    audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
 end
 
 function on_hud_render()
@@ -135,4 +137,7 @@ function on_hud_render()
     else
         update_hand()
     end
+
+    local bytes = audio.fetch_input()
+    stream:feed(bytes)
 end

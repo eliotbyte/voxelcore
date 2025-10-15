@@ -18,10 +18,7 @@ const std::shared_ptr<audio::MemoryPCMStream>& LuaPCMStream::getStream() const {
     return stream;
 }
 
-#include <iostream>
-
 static int l_feed(lua::State* L) {
-    std::cout << "feed" << std::endl;
     auto stream = touserdata<LuaPCMStream>(L, 1);
     if (stream == nullptr) {
         return 0;

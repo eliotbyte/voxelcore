@@ -379,14 +379,33 @@ static int l_audio_get_velocity(lua::State* L) {
     return 0;
 }
 
-// @brief audio.count_speakers() -> integer
+/// @brief audio.count_speakers() -> integer
 static int l_audio_count_speakers(lua::State* L) {
     return lua::pushinteger(L, audio::count_speakers());
 }
 
-// @brief audio.count_streams() -> integer
+/// @brief audio.count_streams() -> integer
 static int l_audio_count_streams(lua::State* L) {
     return lua::pushinteger(L, audio::count_streams());
+}
+
+/// @brief audio.fetch_input(size) -> Bytearray
+static int l_audio_fetch_input(lua::State* L) {
+    auto device = audio::get_input_device();
+    if (device == nullptr) {
+        return 0;
+    }
+    size_t size = lua::touinteger(L, 1);
+    const size_t MAX_BUFFER_SIZE = audio::MAX_INPUT_SAMPLES * 4;
+    if (size == 0) {
+        size = MAX_BUFFER_SIZE;
+    }
+    size = std::min<size_t>(size, MAX_BUFFER_SIZE);
+    ubyte buffer[MAX_BUFFER_SIZE];
+    size = device->read(reinterpret_cast<char*>(buffer), size);
+
+    std::vector<ubyte> bytes(buffer, buffer + size);
+    return lua::create_bytearray(L, std::move(bytes));
 }
 
 const luaL_Reg audiolib[] = {
@@ -414,5 +433,6 @@ const luaL_Reg audiolib[] = {
     {"get_velocity", lua::wrap<l_audio_get_velocity>},
     {"count_speakers", lua::wrap<l_audio_count_speakers>},
     {"count_streams", lua::wrap<l_audio_count_streams>},
+    {"fetch_input", lua::wrap<l_audio_fetch_input>},
     {nullptr, nullptr}
 };

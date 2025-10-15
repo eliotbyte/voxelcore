@@ -24,6 +24,8 @@ namespace audio {
     /// @brief streams and important sounds
     constexpr inline int PRIORITY_HIGH = 10;
 
+    constexpr inline size_t MAX_INPUT_SAMPLES = 22050;
+
     class Speaker;
 
     /// @brief Audio speaker states
@@ -423,6 +425,15 @@ namespace audio {
         std::shared_ptr<PCMStream> stream, bool keepSource
     );
 
+    /// @brief Open audio input device
+    /// @param sampleRate sample rate
+    /// @param channels channels count (1 - mono, 2 - stereo)
+    /// @param bitsPerSample number of bits per sample (8 or 16)
+    /// @return new InputDevice instance or nullptr
+    std::unique_ptr<InputDevice> open_input_device(
+        uint sampleRate, uint channels, uint bitsPerSample
+    );
+
     /// @brief Configure 3D listener
     /// @param position listener position
     /// @param velocity listener velocity (used for Doppler effect)
@@ -535,6 +546,8 @@ namespace audio {
 
     /// @brief Stop all playing audio in channel, reset channel state
     void reset_channel(int channel);
+
+    InputDevice* get_input_device();
 
     /// @brief Finalize audio system
     void close();
