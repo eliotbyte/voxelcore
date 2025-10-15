@@ -184,7 +184,9 @@ void audio::initialize(bool enabled, AudioSettings& settings) {
     }
 
     input_device = backend->openInputDevice(44100, 1, 16);
-    input_device->startCapture();
+    if (input_device) {
+        input_device->startCapture();
+    }
 }
 
 InputDevice* audio::get_input_device() {
@@ -467,7 +469,9 @@ void audio::reset_channel(int index) {
 }
 
 void audio::close() {
-    input_device->stopCapture();
+    if (input_device) {
+        input_device->stopCapture();
+    }
     speakers.clear();
     delete backend;
     backend = nullptr;
