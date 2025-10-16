@@ -381,7 +381,8 @@ assetload::postfunc assetload::model(
 
     auto text = io::read_string(path);
     try {
-        auto model = vcm::parse(path.string(), text).release();
+        auto model = vcm::parse(path.string(), text, path.extension() == ".xml")
+                         .release();
         return [=](Assets* assets) {
             request_textures(loader, *model);
             assets->store(std::unique_ptr<model::Model>(model), name);
