@@ -142,3 +142,21 @@ player.get_entity(playerid: int) -> int
 ```
 
 Возвращает уникальный идентификатор сущности игрока
+
+```lua
+player.get_all_in_radius(center: vec3, radius: number) -> table<int>
+```
+
+Возвращает массив id игроков в пределах сферы с центром `center` и радиусом `radius`.
+
+```lua
+player.get_all() -> table<int>
+```
+
+Возвращает массив id всех активных игроков.
+
+```lua
+player.get_nearest(position: vec3) -> int
+```
+
+Возвращает id ближайшего к указанной позиции игрока, либо nil если игроков нет.

@@ -322,6 +322,38 @@ static int l_set_suspended(lua::State* L) {
     return 0;
 }
 
+static int l_get_all_in_radius(lua::State* L) {
+    auto center = lua::tovec3(L, 1);
+    auto radius = static_cast<float>(lua::tonumber(L, 2));
+
+    auto players = level->players->getAllInRadius(center, radius);
+    lua::createtable(L, players.size(), 0);
+    for (size_t i = 0; i < players.size(); i++) {
+        lua::pushinteger(L, players[i]->getId());
+        lua::rawseti(L, i + 1);
+    }
+    return 1;
+}
+
+static int l_get_all(lua::State* L) {
+    auto players = level->players->getAll();
+    lua::createtable(L, players.size(), 0);
+    for (size_t i = 0; i < players.size(); i++) {
+        lua::pushinteger(L, players[i]->getId());
+        lua::rawseti(L, i + 1);
+    }
+    return 1;
+}
+
+static int l_get_nearest(lua::State* L) {
+    auto position = lua::tovec3(L, 1);
+    if (auto player = level->players->getNearest(position)) {
+        lua::pushinteger(L, player->getId());
+        return 1;
+    }
+    return 0;
+}
+
 const luaL_Reg playerlib[] = {
     {"get_pos", lua::wrap<l_get_pos>},
     {"set_pos", lua::wrap<l_set_pos>},
@@ -358,5 +390,8 @@ const luaL_Reg playerlib[] = {
     {"set_name", lua::wrap<l_set_name>},
     {"create", lua::wrap<l_create>},
     {"delete", lua::wrap<l_delete>},
+    {"get_all_in_radius", lua::wrap<l_get_all_in_radius>},
+    {"get_all", lua::wrap<l_get_all>},
+    {"get_nearest", lua::wrap<l_get_nearest>},
     {nullptr, nullptr}
 };
