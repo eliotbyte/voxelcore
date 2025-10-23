@@ -181,7 +181,7 @@ namespace audio {
         ) override;
 
         std::unique_ptr<InputDevice> openInputDevice(
-            const char* deviceName,
+            const std::string& deviceName,
             uint sampleRate,
             uint channels,
             uint bitsPerSample

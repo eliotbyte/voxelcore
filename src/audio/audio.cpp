@@ -183,7 +183,7 @@ void audio::initialize(bool enabled, AudioSettings& settings) {
         }, true));
     }
 
-    input_device = backend->openInputDevice(nullptr, 44100, 1, 16);
+    input_device = backend->openInputDevice("", 44100, 1, 16);
     if (input_device) {
         input_device->startCapture();
     }
@@ -254,7 +254,7 @@ std::unique_ptr<Stream> audio::open_stream(
 }
 
 std::unique_ptr<InputDevice> audio::open_input_device(
-    const char* deviceName, uint sampleRate, uint channels, uint bitsPerSample
+    const std::string& deviceName, uint sampleRate, uint channels, uint bitsPerSample
 ) {
     return backend->openInputDevice(
         deviceName, sampleRate, channels, bitsPerSample
@@ -270,9 +270,7 @@ std::vector<std::string> audio::get_output_devices_names() {
 }
 
 void audio::set_input_device(const std::string& deviceName) {
-    auto newDevice = backend->openInputDevice(
-        deviceName.empty() ? nullptr : deviceName.c_str(), 44100, 1, 16
-    );
+    auto newDevice = backend->openInputDevice(deviceName, 44100, 1, 16);
     if (newDevice == nullptr) {
         logger.error() << "could not open input device: " << deviceName;
         return;

@@ -533,11 +533,11 @@ std::vector<std::string> ALAudio::getOutputDeviceNames() {
 }
 
 std::unique_ptr<InputDevice> ALAudio::openInputDevice(
-    const char* deviceName, uint sampleRate, uint channels, uint bitsPerSample
+    const std::string& deviceName, uint sampleRate, uint channels, uint bitsPerSample
 ) {
     uint bps = bitsPerSample >> 3;
     ALCdevice* device = alcCaptureOpenDevice(
-        deviceName,
+        deviceName.empty() ? nullptr : deviceName.c_str(),
         sampleRate,
         AL::to_al_format(channels, bitsPerSample),
         sampleRate * channels * bps / 8

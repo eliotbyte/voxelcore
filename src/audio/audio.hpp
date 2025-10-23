@@ -362,7 +362,7 @@ namespace audio {
             std::shared_ptr<PCMStream> stream, bool keepSource
         ) = 0;
         virtual std::unique_ptr<InputDevice> openInputDevice(
-            const char* deviceName,
+            const std::string& deviceName,
             uint sampleRate,
             uint channels,
             uint bitsPerSample
@@ -437,7 +437,7 @@ namespace audio {
     /// @param bitsPerSample number of bits per sample (8 or 16)
     /// @return new InputDevice instance or nullptr
     std::unique_ptr<InputDevice> open_input_device(
-        const char* deviceName,
+        const std::string& deviceName,
         uint sampleRate,
         uint channels,
         uint bitsPerSample
