@@ -82,6 +82,10 @@ namespace audio {
             return nullptr;
         }
 
+        std::vector<std::string> getInputDeviceNames() override {
+            return {};
+        }
+
         void setListener(
             glm::vec3 position, glm::vec3 velocity, glm::vec3 at, glm::vec3 up
         ) override {

@@ -479,6 +479,27 @@ std::unique_ptr<Stream> ALAudio::openStream(
     return std::make_unique<ALStream>(this, stream, keepSource);
 }
 
+std::vector<std::string> ALAudio::getInputDeviceNames() {
+    std::vector<std::string> devices;
+    
+    if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT")) {
+        auto deviceList = alcGetString(nullptr, ALC_CAPTURE_DEVICE_SPECIFIER);
+        if (deviceList == nullptr) {
+            logger.warning() << "no input devices found";
+            return devices;
+        }
+        while (*deviceList) {
+            std::string deviceName(deviceList);
+            devices.push_back(deviceName);
+            deviceList += deviceName.length() + 1;
+        }
+    } else {
+        logger.warning() << "enumeration extension is not available";
+    }
+    
+    return devices;
+}
+
 std::unique_ptr<InputDevice> ALAudio::openInputDevice(
     uint sampleRate, uint channels, uint bitsPerSample
 ) {
@@ -490,6 +511,7 @@ std::unique_ptr<InputDevice> ALAudio::openInputDevice(
         sampleRate * channels * bps / 8
     );
     check_alc_errors(device, "alcCaptureOpenDevice");
+
     return std::make_unique<ALInputDevice>(
         this, device, channels, bitsPerSample
     );

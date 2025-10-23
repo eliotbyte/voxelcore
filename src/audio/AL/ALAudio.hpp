@@ -186,6 +186,8 @@ namespace audio {
             uint sampleRate, uint channels, uint bitsPerSample
         ) override;
 
+        std::vector<std::string> getInputDeviceNames() override;
+
         void setListener(
             glm::vec3 position,
             glm::vec3 velocity,

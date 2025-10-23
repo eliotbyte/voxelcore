@@ -253,6 +253,16 @@ std::unique_ptr<Stream> audio::open_stream(
     return backend->openStream(std::move(stream), keepSource);
 }
 
+std::unique_ptr<InputDevice> audio::open_input_device(
+    uint sampleRate, uint channels, uint bitsPerSample
+) {
+    return backend->openInputDevice(sampleRate, channels, bitsPerSample);
+}
+
+std::vector<std::string> audio::get_input_devices_names() {
+    return backend->getInputDeviceNames();
+}
+
 void audio::set_listener(
     glm::vec3 position, glm::vec3 velocity, glm::vec3 lookAt, glm::vec3 up
 ) {

@@ -370,6 +370,7 @@ namespace audio {
             glm::vec3 lookAt,
             glm::vec3 up
         ) = 0;
+        virtual std::vector<std::string> getInputDeviceNames() = 0;
         virtual void update(double delta) = 0;
 
         /// @brief Check if backend is an abstraction that does not internally
@@ -433,6 +434,10 @@ namespace audio {
     std::unique_ptr<InputDevice> open_input_device(
         uint sampleRate, uint channels, uint bitsPerSample
     );
+
+    /// @brief Retrieve names of available audio input devices
+    /// @return list of device names
+    std::vector<std::string> get_input_devices_names();
 
     /// @brief Configure 3D listener
     /// @param position listener position
