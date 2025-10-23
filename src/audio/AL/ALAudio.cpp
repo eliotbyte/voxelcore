@@ -30,13 +30,14 @@ const char* alc_error_to_string(ALCenum error) {
     }
 }
 
-static void check_alc_errors(ALCdevice* device, const char* context) {
+static bool check_alc_errors(ALCdevice* device, const char* context) {
     ALCenum error = alcGetError(device);
     if (error == ALC_NO_ERROR) {
-        return;
+        return false;
     }
     logger.error() << context << ": " << alc_error_to_string(error) << "("
                    << error << ")";
+    return true;
 }
 
 ALSound::ALSound(
@@ -419,6 +420,8 @@ int ALSpeaker::getPriority() const {
     return priority;
 }
 
+static bool alc_enumeration_ext = false;
+
 ALAudio::ALAudio(ALCdevice* device, ALCcontext* context)
     : device(device), context(context) {
     ALCint size;
@@ -431,9 +434,15 @@ ALAudio::ALAudio(ALCdevice* device, ALCcontext* context)
             maxSources = attrs[i + 1];
         }
     }
-    auto devices = getAvailableDevices();
-    logger.info() << "devices:";
-    for (auto& name : devices) {
+    auto outputDevices = getOutputDeviceNames();
+    logger.info() << "output devices:";
+    for (auto& name : outputDevices) {
+        logger.info() << "  " << name;
+    }
+
+    auto inputDevices = getInputDeviceNames();
+    logger.info() << "input devices:";
+    for (auto& name : inputDevices) {
         logger.info() << "  " << name;
     }
 }
@@ -482,35 +491,59 @@ std::unique_ptr<Stream> ALAudio::openStream(
 std::vector<std::string> ALAudio::getInputDeviceNames() {
     std::vector<std::string> devices;
     
-    if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT")) {
-        auto deviceList = alcGetString(nullptr, ALC_CAPTURE_DEVICE_SPECIFIER);
-        if (deviceList == nullptr) {
-            logger.warning() << "no input devices found";
-            return devices;
-        }
-        while (*deviceList) {
-            std::string deviceName(deviceList);
-            devices.push_back(deviceName);
-            deviceList += deviceName.length() + 1;
-        }
-    } else {
+    if (!alc_enumeration_ext) {
         logger.warning() << "enumeration extension is not available";
+        return devices;
+    }
+
+    auto deviceList = alcGetString(nullptr, ALC_CAPTURE_DEVICE_SPECIFIER);
+    if (deviceList == nullptr) {
+        logger.warning() << "no input devices found";
+        return devices;
+    }
+    while (*deviceList) {
+        std::string deviceName(deviceList);
+        devices.push_back(deviceName);
+        deviceList += deviceName.length() + 1;
+    }
+    
+    return devices;
+}
+
+std::vector<std::string> ALAudio::getOutputDeviceNames() {
+    std::vector<std::string> devices;
+    
+    if (!alc_enumeration_ext) {
+        logger.warning() << "enumeration extension is not available";
+        return devices;
+    }
+
+    auto deviceList = alcGetString(nullptr, ALC_ALL_DEVICES_SPECIFIER);
+    if (deviceList == nullptr) {
+        logger.warning() << "no input devices found";
+        return devices;
+    }
+    while (*deviceList) {
+        std::string deviceName(deviceList);
+        devices.push_back(deviceName);
+        deviceList += deviceName.length() + 1;
     }
     
     return devices;
 }
 
 std::unique_ptr<InputDevice> ALAudio::openInputDevice(
-    uint sampleRate, uint channels, uint bitsPerSample
+    const char* deviceName, uint sampleRate, uint channels, uint bitsPerSample
 ) {
     uint bps = bitsPerSample >> 3;
     ALCdevice* device = alcCaptureOpenDevice(
-        nullptr,
+        deviceName,
         sampleRate,
         AL::to_al_format(channels, bitsPerSample),
         sampleRate * channels * bps / 8
     );
-    check_alc_errors(device, "alcCaptureOpenDevice");
+    if (check_alc_errors(device, "alcCaptureOpenDevice"))
+        return nullptr;
 
     return std::make_unique<ALInputDevice>(
         this, device, channels, bitsPerSample
@@ -518,6 +551,8 @@ std::unique_ptr<InputDevice> ALAudio::openInputDevice(
 }
 
 std::unique_ptr<ALAudio> ALAudio::create() {
+    alc_enumeration_ext = alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT");
+
     ALCdevice* device = alcOpenDevice(nullptr);
     if (device == nullptr) return nullptr;
     ALCcontext* context = alcCreateContext(device, nullptr);
@@ -574,22 +609,35 @@ void ALAudio::freeBuffer(uint buffer) {
     freebuffers.push_back(buffer);
 }
 
-std::vector<std::string> ALAudio::getAvailableDevices() const {
-    std::vector<std::string> devicesVec;
-
-    const ALCchar* devices;
-    devices = alcGetString(device, ALC_DEVICE_SPECIFIER);
-    if (!AL_GET_ERROR()) {
-        return devicesVec;
+void ALAudio::setOutputDevice(const std::string& deviceName) {
+    ALCdevice* newDevice = alcOpenDevice(deviceName.c_str());
+    if (newDevice == nullptr) {
+        logger.error() << "failed to open output device: " << deviceName;
+        return;
     }
 
-    const char* ptr = devices;
-    do {
-        devicesVec.emplace_back(ptr);
-        ptr += devicesVec.back().size() + 1;
-    } while (ptr[0]);
+    ALCcontext* newContext = alcCreateContext(newDevice, nullptr);
+    if (!alcMakeContextCurrent(newContext)) {
+        logger.error() << "failed to make context current for device: "
+                       << deviceName;
+        alcCloseDevice(newDevice);
+        return;
+    }
 
-    return devicesVec;
+    // Clean up old device and context
+    alcMakeContextCurrent(nullptr);
+    check_alc_errors(device, "alcMakeContextCurrent");
+    alcDestroyContext(context);
+    check_alc_errors(device, "alcDestroyContext");
+    if (!alcCloseDevice(device)) {
+        logger.error() << "old device not closed";
+    }
+
+    // Update to new device and context
+    device = newDevice;
+    context = newContext;
+
+    logger.info() << "switched output device to: " << deviceName;
 }
 
 void ALAudio::setListener(

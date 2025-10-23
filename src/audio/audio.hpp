@@ -362,7 +362,10 @@ namespace audio {
             std::shared_ptr<PCMStream> stream, bool keepSource
         ) = 0;
         virtual std::unique_ptr<InputDevice> openInputDevice(
-            uint sampleRate, uint channels, uint bitsPerSample
+            const char* deviceName,
+            uint sampleRate,
+            uint channels,
+            uint bitsPerSample
         ) = 0;
         virtual void setListener(
             glm::vec3 position,
@@ -371,6 +374,8 @@ namespace audio {
             glm::vec3 up
         ) = 0;
         virtual std::vector<std::string> getInputDeviceNames() = 0;
+        virtual std::vector<std::string> getOutputDeviceNames() = 0;
+        virtual void setOutputDevice(const std::string& deviceName) = 0;
         virtual void update(double delta) = 0;
 
         /// @brief Check if backend is an abstraction that does not internally
@@ -432,12 +437,22 @@ namespace audio {
     /// @param bitsPerSample number of bits per sample (8 or 16)
     /// @return new InputDevice instance or nullptr
     std::unique_ptr<InputDevice> open_input_device(
-        uint sampleRate, uint channels, uint bitsPerSample
+        const char* deviceName,
+        uint sampleRate,
+        uint channels,
+        uint bitsPerSample
     );
 
     /// @brief Retrieve names of available audio input devices
     /// @return list of device names
     std::vector<std::string> get_input_devices_names();
+
+    /// @brief Retrieve names of available audio output devices
+    /// @return list of device names
+    std::vector<std::string> get_output_devices_names();
+
+    void set_input_device(const std::string& deviceName);
+    void set_output_device(const std::string& deviceName);
 
     /// @brief Configure 3D listener
     /// @param position listener position

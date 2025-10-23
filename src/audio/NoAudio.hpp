@@ -77,13 +77,19 @@ namespace audio {
         ) override;
 
         std::unique_ptr<InputDevice> openInputDevice(
-            uint sampleRate, uint channels, uint bitsPerSample
+            const char* deviceName, uint sampleRate, uint channels, uint bitsPerSample
         ) override {
             return nullptr;
         }
 
         std::vector<std::string> getInputDeviceNames() override {
             return {};
+        }
+        std::vector<std::string> getOutputDeviceNames() override {
+            return {};
+        }
+
+        void setOutputDevice(const std::string& deviceName) override {
         }
 
         void setListener(

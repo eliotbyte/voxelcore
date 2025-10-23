@@ -172,8 +172,6 @@ namespace audio {
         void freeSource(uint source);
         void freeBuffer(uint buffer);
 
-        std::vector<std::string> getAvailableDevices() const;
-
         std::unique_ptr<Sound> createSound(
             std::shared_ptr<PCM> pcm, bool keepPCM
         ) override;
@@ -183,10 +181,16 @@ namespace audio {
         ) override;
 
         std::unique_ptr<InputDevice> openInputDevice(
-            uint sampleRate, uint channels, uint bitsPerSample
+            const char* deviceName,
+            uint sampleRate,
+            uint channels,
+            uint bitsPerSample
         ) override;
 
+        std::vector<std::string> getOutputDeviceNames() override;
         std::vector<std::string> getInputDeviceNames() override;
+
+        void setOutputDevice(const std::string& deviceName) override;
 
         void setListener(
             glm::vec3 position,

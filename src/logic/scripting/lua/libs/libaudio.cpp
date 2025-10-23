@@ -419,6 +419,29 @@ static int l_audio_get_input_devices_names(lua::State* L) {
     return 1;
 }
 
+static int l_audio_get_output_devices_names(lua::State* L) {
+    auto device_names = audio::get_output_devices_names();
+    lua::createtable(L, device_names.size(), 0);
+    int index = 1;
+    for (const auto& name : device_names) {
+        lua::pushstring(L, name.c_str());
+        lua::rawseti(L, index++);
+    }
+    return 1;
+}
+
+static int l_audio_set_input_device(lua::State* L) {
+    auto device_name = lua::tostring(L, 1);
+    audio::set_input_device(device_name);
+    return 0;
+}
+
+static int l_audio_set_output_device(lua::State* L) {
+    auto device_name = lua::tostring(L, 1);
+    audio::set_output_device(device_name);
+    return 0;
+}
+
 const luaL_Reg audiolib[] = {
     {"play_sound", lua::wrap<l_audio_play_sound>},
     {"play_sound_2d", lua::wrap<l_audio_play_sound_2d>},
@@ -446,5 +469,8 @@ const luaL_Reg audiolib[] = {
     {"count_streams", lua::wrap<l_audio_count_streams>},
     {"fetch_input", lua::wrap<l_audio_fetch_input>},
     {"get_input_devices_names", lua::wrap<l_audio_get_input_devices_names>},
+    {"get_output_devices_names", lua::wrap<l_audio_get_output_devices_names>},
+    {"set_input_device", lua::wrap<l_audio_set_input_device>},
+    {"set_output_device", lua::wrap<l_audio_set_output_device>},
     {nullptr, nullptr}
 };
