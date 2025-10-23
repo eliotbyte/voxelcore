@@ -68,9 +68,17 @@ std::unique_ptr<Speaker> ALSound::newInstance(int priority, int channel) const {
 }
 
 ALInputDevice::ALInputDevice(
-    ALAudio* al, ALCdevice* device, uint channels, uint bitsPerSample
+    ALAudio* al,
+    ALCdevice* device,
+    uint channels,
+    uint bitsPerSample,
+    uint sampleRate
 )
-    : al(al), device(device), channels(channels), bitsPerSample(bitsPerSample) {
+    : al(al),
+      device(device),
+      channels(channels),
+      bitsPerSample(bitsPerSample),
+      sampleRate(sampleRate) {
 }
 
 ALInputDevice::~ALInputDevice() {
@@ -90,6 +98,14 @@ void ALInputDevice::stopCapture() {
 
 uint ALInputDevice::getChannels() const {
     return channels;
+}
+
+uint ALInputDevice::getSampleRate() const {
+    return sampleRate;
+}
+
+uint ALInputDevice::getBitsPerSample() const {
+    return bitsPerSample;
 }
 
 size_t ALInputDevice::read(char* buffer, size_t bufferSize) {
@@ -546,7 +562,7 @@ std::unique_ptr<InputDevice> ALAudio::openInputDevice(
         return nullptr;
 
     return std::make_unique<ALInputDevice>(
-        this, device, channels, bitsPerSample
+        this, device, channels, bitsPerSample, sampleRate
     );
 }
 

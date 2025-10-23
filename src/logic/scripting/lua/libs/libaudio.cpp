@@ -442,6 +442,21 @@ static int l_audio_set_output_device(lua::State* L) {
     return 0;
 }
 
+static int l_audio_get_input_info(lua::State* L) {
+    auto device = audio::get_input_device();
+    if (device == nullptr) {
+        return 0;
+    }
+    lua::createtable(L, 0, 3);
+    lua::pushinteger(L, device->getChannels());
+    lua::setfield(L, "channels");
+    lua::pushinteger(L, device->getSampleRate());
+    lua::setfield(L, "sample_rate");
+    lua::pushinteger(L, device->getBitsPerSample());
+    lua::setfield(L, "bits_per_sample");
+    return 1;
+}
+
 const luaL_Reg audiolib[] = {
     {"play_sound", lua::wrap<l_audio_play_sound>},
     {"play_sound_2d", lua::wrap<l_audio_play_sound_2d>},
@@ -472,5 +487,6 @@ const luaL_Reg audiolib[] = {
     {"get_output_devices_names", lua::wrap<l_audio_get_output_devices_names>},
     {"set_input_device", lua::wrap<l_audio_set_input_device>},
     {"set_output_device", lua::wrap<l_audio_set_output_device>},
+    {"get_input_info", lua::wrap<l_audio_get_input_info>},
     {nullptr, nullptr}
 };

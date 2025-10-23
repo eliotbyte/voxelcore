@@ -85,7 +85,11 @@ namespace audio {
     class ALInputDevice : public InputDevice {
     public:
         ALInputDevice(
-            ALAudio* al, ALCdevice* device, uint channels, uint bitsPerSample
+            ALAudio* al,
+            ALCdevice* device,
+            uint channels,
+            uint bitsPerSample,
+            uint sampleRate
         );
         ~ALInputDevice() override;
 
@@ -93,6 +97,8 @@ namespace audio {
         void stopCapture() override;
 
         uint getChannels() const override;
+        uint getSampleRate() const override;
+        uint getBitsPerSample() const override;
 
         size_t read(char* buffer, size_t bufferSize) override;
     private:
@@ -100,6 +106,7 @@ namespace audio {
         ALCdevice* device;
         uint channels;
         uint bitsPerSample;
+        uint sampleRate;
     };
 
     /// @brief AL source adapter

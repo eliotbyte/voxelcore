@@ -120,6 +120,12 @@ namespace audio {
         /// @brief Get number of audio channels
         /// @return 1 if mono, 2 if stereo
         virtual uint getChannels() const = 0;
+        /// @brief Get audio sampling frequency
+        /// @return number of mono samples per second
+        virtual uint getSampleRate() const = 0;
+        /// @brief Get number of bits per mono sample
+        /// @return 8 or 16
+        virtual uint getBitsPerSample() const = 0;
 
         virtual size_t read(char* buffer, size_t bufferSize) = 0;
     };
