@@ -181,6 +181,10 @@ const Mesh<ChunkVertex>* ChunksRenderer::retrieveChunk(
             chunk->top,
             chunk->z * CHUNK_D + CHUNK_D
         );
+        // Expand bounds to include possible overhang from extended blocks rendered by this chunk
+        const float overhang = 4.0f; // blocks
+        min.x -= overhang; min.z -= overhang;
+        max.x += overhang; max.z += overhang;
 
         if (!frustum.isBoxVisible(min, max)) return nullptr;
     }
@@ -332,6 +336,9 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
                 chunk->top,
                 chunk->z * CHUNK_D + CHUNK_D
             );
+            const float overhang = 4.0f;
+            min.x -= overhang; min.z -= overhang;
+            max.x += overhang; max.z += overhang;
 
             if (!frustum.isBoxVisible(min, max)) continue;
         }

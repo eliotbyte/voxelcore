@@ -32,7 +32,8 @@ class BlocksRenderer {
     size_t indexCount;
     size_t denseIndexCount;
     size_t capacity;
-    int voxelBufferPadding = 2;
+    // Increased to better cover cross-chunk sampling for extended blocks (e.g., 3x3x3)
+    int voxelBufferPadding = 4;
     bool overflow = false;
     bool cancelled = false;
     bool densePass = false;
@@ -61,6 +62,7 @@ class BlocksRenderer {
     void vertexAO(
         const glm::vec3& coord, float u, float v, 
         const glm::vec4& brightness,
+        float normalHalfLen,
         const glm::vec3& axisX,
         const glm::vec3& axisY,
         const glm::vec3& axisZ
