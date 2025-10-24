@@ -104,11 +104,14 @@ void BlocksRenderer::vertexAO(
     const glm::vec3& coord,
     float u, float v,
     const glm::vec4& tint,
+    float normalHalfLen,
     const glm::vec3& axisX,
     const glm::vec3& axisY,
     const glm::vec3& axisZ
 ) {
-    auto pos = coord+axisZ*0.5f+(axisX+axisY)*0.5f;
+    // Sample AO in world-voxel grid with a slightly longer reach along the normal
+    // to avoid sampling the same chunk voxel when faces reside over neighbor chunk.
+    auto pos = coord + axisZ * normalHalfLen + (axisX + axisY) * 0.5f;
     auto light = pickSoftLight(
         glm::ivec3(std::round(pos.x), std::round(pos.y), std::round(pos.z)),
         axisX,
@@ -140,10 +143,11 @@ void BlocksRenderer::faceAO(
         auto axisZ = glm::normalize(Z);
 
         glm::vec4 tint(d);
-        vertexAO(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, axisX, axisY, axisZ);
-        vertexAO(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, axisX, axisY, axisZ);
-        vertexAO(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, axisX, axisY, axisZ);
-        vertexAO(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, axisX, axisY, axisZ);
+        const float nh = 0.75f; // push AO sample a bit farther along normal
+        vertexAO(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, nh, axisX, axisY, axisZ);
+        vertexAO(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, nh, axisX, axisY, axisZ);
+        vertexAO(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
+        vertexAO(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
     } else {
         auto axisZ = glm::normalize(Z);
         glm::vec4 tint(1.0f);
