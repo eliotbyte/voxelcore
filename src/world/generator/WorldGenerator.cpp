@@ -238,7 +238,8 @@ void WorldGenerator::placeBlock(const BlockPlacement& block, int priority) {
             if (found != prototypes.end()) {
                 // position becomes relative to prototype chunk
                 glm::ivec3 rel = block.position - glm::ivec3(cx * CHUNK_W, 0, cz * CHUNK_D);
-                found->second->placements.emplace_back(priority, BlockPlacement{block.block, rel, block.rotation});
+                bool owner = (cx == floordiv<CHUNK_W>(block.position.x)) && (cz == floordiv<CHUNK_D>(block.position.z));
+                found->second->placements.emplace_back(priority, BlockPlacement{block.block, rel, block.rotation, !owner});
             }
         }
     }
@@ -643,26 +644,26 @@ void WorldGenerator::generateBlock(
     const auto& indices = content.getIndices()->blocks;
     const auto& def = indices.require(placement.block);
 
-    int cgx = chunkX * CHUNK_W;
-    int cgz = chunkZ * CHUNK_D;
-
-    glm::ivec3 origin = placement.position; // already relative to chunk in placeBlock
-
-    if (origin.x < 0 || origin.x >= CHUNK_W ||
-        origin.z < 0 || origin.z >= CHUNK_D ||
-        origin.y < 0 || origin.y >= CHUNK_H) {
-        return;
+    glm::ivec3 origin = placement.position; // relative; may be outside
+    int rotIndex = 0;
+    if (def.rotatable && def.rotations.variantsCount) {
+        rotIndex = placement.rotation % def.rotations.variantsCount;
     }
 
-    // write origin voxel
-    auto& vox = voxels[vox_index(origin.x, origin.y, origin.z)];
-    vox.id = placement.block;
-    vox.state = {};
-    vox.state.rotation = placement.rotation & 0b11;
+    // write origin only for owner chunk (mirror==false) and if inside bounds
+    if (!placement.mirror &&
+        origin.x >= 0 && origin.x < CHUNK_W &&
+        origin.y >= 0 && origin.y < CHUNK_H &&
+        origin.z >= 0 && origin.z < CHUNK_D) {
+        auto& vox = voxels[vox_index(origin.x, origin.y, origin.z)];
+        vox.id = placement.block;
+        vox.state = {};
+        vox.state.rotation = rotIndex;
+    }
 
     // expand extended blocks
     if (def.rt.extended) {
-        const auto& rot = def.rotations.variants[vox.state.rotation];
+        const auto& rot = def.rotations.variants[rotIndex];
         const auto size = def.size;
         for (int sy = 0; sy < size.y; sy++) {
             for (int sz = 0; sz < size.z; sz++) {
@@ -680,7 +681,7 @@ void WorldGenerator::generateBlock(
                     struct voxel seg;
                     seg.id = placement.block;
                     seg.state = {};
-                    seg.state.rotation = vox.state.rotation;
+                    seg.state.rotation = rotIndex;
                     seg.state.segment = ((sx > 0) | ((sy > 0) << 1) | ((sz > 0) << 2));
                     voxels[vox_index(pos.x, pos.y, pos.z)] = seg;
                 }

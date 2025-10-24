@@ -31,9 +31,10 @@ struct BlockPlacement {
     blockid_t block;
     glm::ivec3 position;
     uint8_t rotation;
+    bool mirror;
 
-    BlockPlacement(blockid_t block, glm::ivec3 position, uint8_t rotation)
-        : block(block), position(std::move(position)), rotation(rotation) {
+    BlockPlacement(blockid_t block, glm::ivec3 position, uint8_t rotation, bool mirror=false)
+        : block(block), position(std::move(position)), rotation(rotation), mirror(mirror) {
     }
 };
 
