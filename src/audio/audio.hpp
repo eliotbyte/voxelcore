@@ -381,7 +381,6 @@ namespace audio {
         ) = 0;
         virtual std::vector<std::string> getInputDeviceNames() = 0;
         virtual std::vector<std::string> getOutputDeviceNames() = 0;
-        virtual void setOutputDevice(const std::string& deviceName) = 0;
         virtual void update(double delta) = 0;
 
         /// @brief Check if backend is an abstraction that does not internally
@@ -458,7 +457,6 @@ namespace audio {
     std::vector<std::string> get_output_devices_names();
 
     void set_input_device(const std::string& deviceName);
-    void set_output_device(const std::string& deviceName);
 
     /// @brief Configure 3D listener
     /// @param position listener position

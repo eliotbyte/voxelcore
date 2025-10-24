@@ -197,8 +197,6 @@ namespace audio {
         std::vector<std::string> getOutputDeviceNames() override;
         std::vector<std::string> getInputDeviceNames() override;
 
-        void setOutputDevice(const std::string& deviceName) override;
-
         void setListener(
             glm::vec3 position,
             glm::vec3 velocity,

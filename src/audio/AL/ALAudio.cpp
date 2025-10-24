@@ -625,37 +625,6 @@ void ALAudio::freeBuffer(uint buffer) {
     freebuffers.push_back(buffer);
 }
 
-void ALAudio::setOutputDevice(const std::string& deviceName) {
-    ALCdevice* newDevice = alcOpenDevice(deviceName.c_str());
-    if (newDevice == nullptr) {
-        logger.error() << "failed to open output device: " << deviceName;
-        return;
-    }
-
-    ALCcontext* newContext = alcCreateContext(newDevice, nullptr);
-    if (!alcMakeContextCurrent(newContext)) {
-        logger.error() << "failed to make context current for device: "
-                       << deviceName;
-        alcCloseDevice(newDevice);
-        return;
-    }
-
-    // Clean up old device and context
-    alcMakeContextCurrent(nullptr);
-    check_alc_errors(device, "alcMakeContextCurrent");
-    alcDestroyContext(context);
-    check_alc_errors(device, "alcDestroyContext");
-    if (!alcCloseDevice(device)) {
-        logger.error() << "old device not closed";
-    }
-
-    // Update to new device and context
-    device = newDevice;
-    context = newContext;
-
-    logger.info() << "switched output device to: " << deviceName;
-}
-
 void ALAudio::setListener(
     glm::vec3 position, glm::vec3 velocity, glm::vec3 at, glm::vec3 up
 ) {

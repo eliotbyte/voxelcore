@@ -285,10 +285,6 @@ void audio::set_input_device(const std::string& deviceName) {
     }
 }
 
-void audio::set_output_device(const std::string& deviceName) {
-    backend->setOutputDevice(deviceName);
-}
-
 void audio::set_listener(
     glm::vec3 position, glm::vec3 velocity, glm::vec3 lookAt, glm::vec3 up
 ) {
