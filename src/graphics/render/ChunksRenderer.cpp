@@ -329,7 +329,7 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
     static int frameid = 0;
     frameid++;
 
-    bool culling = settings.graphics.frustumCulling.get();
+    const bool culling = settings.graphics.frustumCulling.get();
     const auto& chunks = this->chunks.getChunks();
     const auto& cameraPos = camera.position;
     const auto& atlas = assets.require<Atlas>("blocks");
@@ -338,60 +338,78 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
     atlas.getTexture()->bind();
     shader.uniformMatrix("u_model", glm::mat4(1.0f));
     shader.uniform1i("u_alphaClip", false);
-    
+
+    struct VisibleChunkTrans {
+        glm::ivec2 key;
+        const std::shared_ptr<Chunk>* chunkPtr;
+        long long nearestDist2;
+    };
+    std::vector<VisibleChunkTrans> order;
+    order.reserve(indices.size());
+
+    // Build per-chunk nearest distance for translucent entries
     for (const auto& index : indices) {
         const auto& chunk = chunks[index.index];
         if (chunk == nullptr || !chunk->flags.lighted) {
             continue;
         }
-        const auto& found = meshes.find(glm::ivec2(chunk->x, chunk->z));
-        if (found == meshes.end() || found->second.sortingMeshData.entries.empty()) {
+        const auto found = meshes.find(glm::ivec2(chunk->x, chunk->z));
+        if (found == meshes.end()) {
+            continue;
+        }
+        const auto& entries = found->second.sortingMeshData.entries;
+        if (entries.empty()) {
             continue;
         }
 
         if (culling) {
             glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
             glm::vec3 max(chunk->x * CHUNK_W + CHUNK_W, chunk->top, chunk->z * CHUNK_D + CHUNK_D);
-            const auto& found2 = meshes.find(glm::ivec2(chunk->x, chunk->z));
-            if (found2 != meshes.end()) {
-                const auto& aabb = found2->second.localAabb;
-                if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
-                    min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
-                                     (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
-                                     chunk->z * CHUNK_D + aabb.min().z + 0.5f);
-                    max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
-                                     (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
-                                     chunk->z * CHUNK_D + aabb.max().z + 0.5f);
-                }
+            const auto& aabb = found->second.localAabb;
+            if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
+                min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
+                                 (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.min().z + 0.5f);
+                max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
+                                 (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.max().z + 0.5f);
             }
             if (!frustum.isBoxVisible(min, max)) continue;
         }
 
-        auto& chunkEntries = found->second.sortingMeshData.entries;
+        long long nearest = LLONG_MAX;
+        for (const auto& e : entries) {
+            long long d2 = static_cast<long long>(glm::distance2(e.position, cameraPos));
+            if (d2 < nearest) nearest = d2;
+        }
+        order.push_back(VisibleChunkTrans{glm::ivec2(chunk->x, chunk->z), &chunks[index.index], nearest});
+    }
 
-        if (chunkEntries.size() == 1) {
-            auto& entry = chunkEntries.at(0);
-            if (found->second.sortedMesh == nullptr) {
-                found->second.sortedMesh = std::make_unique<Mesh<ChunkVertex>>(
-                    entry.vertexData.data(), entry.vertexData.size()
+    // Sort chunks by nearest translucent distance back-to-front (far to near)
+    std::sort(order.begin(), order.end(), [](const VisibleChunkTrans& a, const VisibleChunkTrans& b) {
+        return a.nearestDist2 > b.nearestDist2;
+    });
+
+    // Draw per-chunk sorted mesh (keeps GPU buffers and avoids per-frame repack)
+    for (const auto& item : order) {
+        const auto& chunk = *item.chunkPtr;
+        const auto found = meshes.find(item.key);
+        if (found == meshes.end()) continue;
+        auto& chunkEntries = found->second.sortingMeshData.entries;
+        if (chunkEntries.empty()) continue;
+
+        // Keep per-chunk internal order up-to-date occasionally
+        if (found->second.sortedMesh == nullptr || (frameid + chunk->x) % sortInterval == 0) {
+            for (auto& entry : chunkEntries) {
+                entry.distance = static_cast<long long>(
+                    glm::distance2(entry.position, cameraPos)
                 );
             }
-            found->second.sortedMesh->draw();
-            continue;
-        }
-        for (auto& entry : chunkEntries) {
-            entry.distance = static_cast<long long>(
-                glm::distance2(entry.position, cameraPos)
-            );
-        }
-        if (found->second.sortedMesh == nullptr ||
-            (frameid + chunk->x) % sortInterval == 0) {
             std::sort(chunkEntries.begin(), chunkEntries.end());
             size_t size = 0;
             for (const auto& entry : chunkEntries) {
                 size += entry.vertexData.size();
             }
-
             static util::Buffer<ChunkVertex> buffer;
             if (buffer.size() < size) {
                 buffer = util::Buffer<ChunkVertex>(size);
