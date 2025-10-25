@@ -12,8 +12,14 @@
 const glm::vec3 BlocksRenderer::SUN_VECTOR(0.528265f, 0.833149f, -0.163704f);
 const float DIRECTIONAL_LIGHT_FACTOR = 0.3f;
 
-// forward declaration for helper used below
-static inline void expand_aabb(AABB& aabb, bool& init, const glm::vec3& p);
+namespace {
+static constexpr float kChunkCenterBias = 0.5f;
+static constexpr float kAoNormalPush = 0.75f;
+static constexpr float kFaceOffsetEps = 1e-3f;
+
+static inline void expandAabbPoint(AABB& aabb, bool& init, const glm::vec3& p) {
+    if (!init) { aabb.a = aabb.b = p; init = true; } else { aabb.addPoint(p); }
+}
 
 static inline float applyDirectionalFactor(float d) {
     return (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
@@ -24,10 +30,10 @@ static inline void expandAabb4(
     const glm::vec3& p0, const glm::vec3& p1,
     const glm::vec3& p2, const glm::vec3& p3
 ) {
-    expand_aabb(aabb, init, p0);
-    expand_aabb(aabb, init, p1);
-    expand_aabb(aabb, init, p2);
-    expand_aabb(aabb, init, p3);
+    expandAabbPoint(aabb, init, p0);
+    expandAabbPoint(aabb, init, p1);
+    expandAabbPoint(aabb, init, p2);
+    expandAabbPoint(aabb, init, p3);
 }
 
 static inline void fillTexfaces(
@@ -36,6 +42,7 @@ static inline void fillTexfaces(
     UVRegion (&out)[6]
 ) {
     for (int f = 0; f < 6; ++f) out[f] = cache.getRegion(id, variantId, f, densePass);
+}
 }
 
 BlocksRenderer::BlocksRenderer(
@@ -127,7 +134,7 @@ void BlocksRenderer::face(
     auto X = axisX * w;
     auto Y = axisY * h;
     auto Z = axisZ * d;
-    float s = 0.5f;
+    float s = kChunkCenterBias;
     auto p0 = coord + (-X - Y + Z) * s;
     auto p1 = coord + ( X - Y + Z) * s;
     auto p2 = coord + ( X + Y + Z) * s;
@@ -177,16 +184,17 @@ void BlocksRenderer::faceAO(
         return;
     }
 
-    float s = 0.5f;
+    float s = kChunkCenterBias;
     if (lights) {
-        float d = applyDirectionalFactor(glm::dot(glm::normalize(Z), SUN_VECTOR));
+        const auto nZ = glm::normalize(Z);
+        float d = applyDirectionalFactor(glm::dot(nZ, SUN_VECTOR));
 
         auto axisX = glm::normalize(X);
         auto axisY = glm::normalize(Y);
-        auto axisZ = glm::normalize(Z);
+        auto axisZ = nZ;
 
         glm::vec4 tint(d);
-        const float nh = 0.75f; // push AO sample a bit farther along normal
+        const float nh = kAoNormalPush; // push AO sample a bit farther along normal
         auto p0 = coord + (-X - Y + Z) * s;
         auto p1 = coord + ( X - Y + Z) * s;
         auto p2 = coord + ( X + Y + Z) * s;
@@ -230,15 +238,17 @@ void BlocksRenderer::face(
         return;
     }
 
-    float s = 0.5f;
+    float s = kChunkCenterBias;
+    const auto nZ = glm::normalize(Z);
     if (lights) {
-        float d = applyDirectionalFactor(glm::dot(glm::normalize(Z), SUN_VECTOR));
+        float d = applyDirectionalFactor(glm::dot(nZ, SUN_VECTOR));
         tint *= d;
     }
-    vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, Z, lights ? 0 : 1);
-    vertex(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, Z, lights ? 0 : 1);
-    vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, Z, lights ? 0 : 1);
-    vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, Z, lights ? 0 : 1);
+    const auto nZ2 = lights ? nZ : Z;
+    vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, nZ2, lights ? 0 : 1);
+    vertex(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, nZ2, lights ? 0 : 1);
+    vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, nZ2, lights ? 0 : 1);
+    vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, nZ2, lights ? 0 : 1);
     index(0, 1, 2, 0, 2, 3);
 }
 
