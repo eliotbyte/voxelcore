@@ -389,14 +389,18 @@ void BlocksRenderer::blockCustomModel(
                              vcoord.z * Z + r * 0.5f + t * 0.5f + n * 0.5f;
                     aoColor = pickSoftLight(p.x, p.y, p.z, glm::ivec3(r), glm::ivec3(t));
                 }
+                auto pLocal = coord + vcoord.x * X + vcoord.y * Y + vcoord.z * Z;
                 this->vertex(
-                    coord + vcoord.x * X + vcoord.y * Y + vcoord.z * Z,
+                    pLocal,
                     vertex.uv.x,
                     vertex.uv.y,
                     mesh.shading ? (glm::vec4(d, d, d, d) * aoColor) : glm::vec4(1, 1, 1, d),
                     n,
                     mesh.shading ? 0.0f : 1.0
                 );
+                if (!densePass) {
+                    expand_aabb(localAabb, localAabbInit, pLocal);
+                }
                 indexBuffer[indexCount++] = vertexOffset++;
             }
         }
