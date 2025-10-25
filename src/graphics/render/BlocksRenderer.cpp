@@ -12,6 +12,32 @@
 const glm::vec3 BlocksRenderer::SUN_VECTOR(0.528265f, 0.833149f, -0.163704f);
 const float DIRECTIONAL_LIGHT_FACTOR = 0.3f;
 
+// forward declaration for helper used below
+static inline void expand_aabb(AABB& aabb, bool& init, const glm::vec3& p);
+
+static inline float applyDirectionalFactor(float d) {
+    return (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
+}
+
+static inline void expandAabb4(
+    AABB& aabb, bool& init,
+    const glm::vec3& p0, const glm::vec3& p1,
+    const glm::vec3& p2, const glm::vec3& p3
+) {
+    expand_aabb(aabb, init, p0);
+    expand_aabb(aabb, init, p1);
+    expand_aabb(aabb, init, p2);
+    expand_aabb(aabb, init, p3);
+}
+
+static inline void fillTexfaces(
+    const ContentGfxCache& cache,
+    blockid_t id, uint8_t variantId, bool densePass,
+    UVRegion (&out)[6]
+) {
+    for (int f = 0; f < 6; ++f) out[f] = cache.getRegion(id, variantId, f, densePass);
+}
+
 BlocksRenderer::BlocksRenderer(
     size_t capacity,
     const Content& content,
@@ -102,18 +128,19 @@ void BlocksRenderer::face(
     auto Y = axisY * h;
     auto Z = axisZ * d;
     float s = 0.5f;
-    vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, lights[0] * tint, axisZ, 0);
-    vertex(coord + ( X - Y + Z) * s, region.u2, region.v1, lights[1] * tint, axisZ, 0);
-    vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, lights[2] * tint, axisZ, 0);
-    vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, lights[3] * tint, axisZ, 0);
+    auto p0 = coord + (-X - Y + Z) * s;
+    auto p1 = coord + ( X - Y + Z) * s;
+    auto p2 = coord + ( X + Y + Z) * s;
+    auto p3 = coord + (-X + Y + Z) * s;
+    vertex(p0, region.u1, region.v1, lights[0] * tint, axisZ, 0);
+    vertex(p1, region.u2, region.v1, lights[1] * tint, axisZ, 0);
+    vertex(p2, region.u2, region.v2, lights[2] * tint, axisZ, 0);
+    vertex(p3, region.u1, region.v2, lights[3] * tint, axisZ, 0);
     index(0, 1, 3, 1, 2, 3);
 
     // Expand local opaque AABB while vertices are still in chunk-local space
     if (!densePass) {
-        expand_aabb(localAabb, localAabbInit, coord + (-X - Y + Z) * s);
-        expand_aabb(localAabb, localAabbInit, coord + ( X - Y + Z) * s);
-        expand_aabb(localAabb, localAabbInit, coord + ( X + Y + Z) * s);
-        expand_aabb(localAabb, localAabbInit, coord + (-X + Y + Z) * s);
+        expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
     }
 }
 
@@ -152,8 +179,7 @@ void BlocksRenderer::faceAO(
 
     float s = 0.5f;
     if (lights) {
-        float d = glm::dot(glm::normalize(Z), SUN_VECTOR);
-        d = (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
+        float d = applyDirectionalFactor(glm::dot(glm::normalize(Z), SUN_VECTOR));
 
         auto axisX = glm::normalize(X);
         auto axisY = glm::normalize(Y);
@@ -170,10 +196,7 @@ void BlocksRenderer::faceAO(
         vertexAO(p2, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
         vertexAO(p3, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
         if (!densePass) {
-            expand_aabb(localAabb, localAabbInit, p0);
-            expand_aabb(localAabb, localAabbInit, p1);
-            expand_aabb(localAabb, localAabbInit, p2);
-            expand_aabb(localAabb, localAabbInit, p3);
+            expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
         }
     } else {
         auto axisZ = glm::normalize(Z);
@@ -187,10 +210,7 @@ void BlocksRenderer::faceAO(
         vertex(p2, region.u2, region.v2, tint, axisZ, 1);
         vertex(p3, region.u1, region.v2, tint, axisZ, 1);
         if (!densePass) {
-            expand_aabb(localAabb, localAabbInit, p0);
-            expand_aabb(localAabb, localAabbInit, p1);
-            expand_aabb(localAabb, localAabbInit, p2);
-            expand_aabb(localAabb, localAabbInit, p3);
+            expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
         }
     }
     index(0, 1, 2, 0, 2, 3);
@@ -212,8 +232,7 @@ void BlocksRenderer::face(
 
     float s = 0.5f;
     if (lights) {
-        float d = glm::dot(glm::normalize(Z), SUN_VECTOR);
-        d = (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
+        float d = applyDirectionalFactor(glm::dot(glm::normalize(Z), SUN_VECTOR));
         tint *= d;
     }
     vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, Z, lights ? 0 : 1);
@@ -375,8 +394,7 @@ void BlocksRenderer::blockCustomModel(
                 continue;
             }
 
-            float d = glm::dot(n, SUN_VECTOR);
-            d = (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
+            float d = applyDirectionalFactor(glm::dot(n, SUN_VECTOR));
             glm::vec3 t = glm::cross(r, n);
 
             for (int i = 0; i < 3; i++) {
@@ -547,14 +565,8 @@ void BlocksRenderer::render(
             if (def.translucent) {
                 continue;
             }
-            const UVRegion texfaces[6] {
-                cache.getRegion(id, variantId, 0, densePass),
-                cache.getRegion(id, variantId, 1, densePass),
-                cache.getRegion(id, variantId, 2, densePass),
-                cache.getRegion(id, variantId, 3, densePass),
-                cache.getRegion(id, variantId, 4, densePass),
-                cache.getRegion(id, variantId, 5, densePass)
-            };
+            UVRegion texfaces[6];
+            fillTexfaces(cache, id, variantId, densePass, texfaces);
             int x = i % CHUNK_W;
             int y = i / (CHUNK_D * CHUNK_W);
             int z = (i / CHUNK_D) % CHUNK_W;
@@ -625,14 +637,8 @@ SortingMeshData BlocksRenderer::renderTranslucent(
             if (!def.translucent) {
                 continue;
             }
-            const UVRegion texfaces[6] {
-                cache.getRegion(id, variantId, 0, densePass),
-                cache.getRegion(id, variantId, 1, densePass),
-                cache.getRegion(id, variantId, 2, densePass),
-                cache.getRegion(id, variantId, 3, densePass),
-                cache.getRegion(id, variantId, 4, densePass),
-                cache.getRegion(id, variantId, 5, densePass)
-            };
+            UVRegion texfaces[6];
+            fillTexfaces(cache, id, variantId, densePass, texfaces);
             int x = i % CHUNK_W;
             int y = i / (CHUNK_D * CHUNK_W);
             int z = (i / CHUNK_D) % CHUNK_W;
