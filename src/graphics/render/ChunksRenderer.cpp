@@ -13,6 +13,7 @@
 #include "maths/FrustumCulling.hpp"
 #include "util/listutil.hpp"
 #include "settings.hpp"
+#include <algorithm>
 
 static debug::Logger logger("chunks-render");
 
@@ -76,6 +77,7 @@ ChunksRenderer::ChunksRenderer(
                   meshes[result.key] = ChunkMesh {
                       std::make_unique<Mesh<ChunkVertex>>(meshData.mesh),
                       std::move(meshData.sortingMesh)};
+                  meshes[result.key].localAabb = meshData.localAabb;
               }
               inwork.erase(result.key);
           },
@@ -103,6 +105,8 @@ const Mesh<ChunkVertex>* ChunksRenderer::render(
         meshes[glm::ivec2(chunk->x, chunk->z)] = ChunkMesh {
             std::move(mesh.mesh), std::move(mesh.sortingMeshData)
         };
+        // propagate local aabb from immediate path too
+        meshes[glm::ivec2(chunk->x, chunk->z)].localAabb = renderer->getLocalAabb();
         return meshes[glm::ivec2(chunk->x, chunk->z)].mesh.get();
     }
     glm::ivec2 key(chunk->x, chunk->z);
@@ -175,17 +179,21 @@ const Mesh<ChunkVertex>* ChunksRenderer::retrieveChunk(
         chunk->updateHeights();
     }
     if (culling) {
+        // Prefer precise per-mesh local AABB if present
         glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-        glm::vec3 max(
-            chunk->x * CHUNK_W + CHUNK_W,
-            chunk->top,
-            chunk->z * CHUNK_D + CHUNK_D
-        );
-        // Expand bounds to include possible overhang from extended blocks rendered by this chunk
-        const float overhang = 4.0f; // blocks
-        min.x -= overhang; min.z -= overhang;
-        max.x += overhang; max.z += overhang;
-
+        glm::vec3 max(chunk->x * CHUNK_W + CHUNK_W, chunk->top, chunk->z * CHUNK_D + CHUNK_D);
+        auto found = meshes.find(glm::ivec2(chunk->x, chunk->z));
+        if (found != meshes.end()) {
+            const auto& aabb = found->second.localAabb;
+            if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
+                min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
+                                 (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.min().z + 0.5f);
+                max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
+                                 (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.max().z + 0.5f);
+            }
+        }
         if (!frustum.isBoxVisible(min, max)) return nullptr;
     }
     return mesh;
@@ -224,7 +232,19 @@ void ChunksRenderer::drawShadowsPass(
             chunk->top,
             chunk->z * CHUNK_D + CHUNK_D
         );
-
+        // Prefer precise per-mesh bounds if available
+        const auto& found2 = meshes.find(glm::ivec2(chunk->x, chunk->z));
+        if (found2 != meshes.end()) {
+            const auto& aabb = found2->second.localAabb;
+            if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
+                min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
+                                 (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.min().z + 0.5f);
+                max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
+                                 (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
+                                 chunk->z * CHUNK_D + aabb.max().z + 0.5f);
+            }
+        }
         if (!frustum.isBoxVisible(min, max)) {
             continue;
         }
@@ -331,15 +351,19 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
 
         if (culling) {
             glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-            glm::vec3 max(
-                chunk->x * CHUNK_W + CHUNK_W,
-                chunk->top,
-                chunk->z * CHUNK_D + CHUNK_D
-            );
-            const float overhang = 4.0f;
-            min.x -= overhang; min.z -= overhang;
-            max.x += overhang; max.z += overhang;
-
+            glm::vec3 max(chunk->x * CHUNK_W + CHUNK_W, chunk->top, chunk->z * CHUNK_D + CHUNK_D);
+            const auto& found2 = meshes.find(glm::ivec2(chunk->x, chunk->z));
+            if (found2 != meshes.end()) {
+                const auto& aabb = found2->second.localAabb;
+                if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
+                    min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
+                                     (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
+                                     chunk->z * CHUNK_D + aabb.min().z + 0.5f);
+                    max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
+                                     (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
+                                     chunk->z * CHUNK_D + aabb.max().z + 0.5f);
+                }
+            }
             if (!frustum.isBoxVisible(min, max)) continue;
         }
 

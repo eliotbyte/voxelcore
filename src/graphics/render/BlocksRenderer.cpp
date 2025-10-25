@@ -74,6 +74,15 @@ void BlocksRenderer::index(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint3
     vertexOffset += 4;
 }
 
+static inline void expand_aabb(AABB& aabb, bool& init, const glm::vec3& p) {
+    if (!init) {
+        aabb.a = aabb.b = p;
+        init = true;
+    } else {
+        aabb.addPoint(p);
+    }
+}
+
 /// @brief Add face with precalculated lights
 void BlocksRenderer::face(
     const glm::vec3& coord,
@@ -98,6 +107,14 @@ void BlocksRenderer::face(
     vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, lights[2] * tint, axisZ, 0);
     vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, lights[3] * tint, axisZ, 0);
     index(0, 1, 3, 1, 2, 3);
+
+    // Expand local opaque AABB while vertices are still in chunk-local space
+    if (!densePass) {
+        expand_aabb(localAabb, localAabbInit, coord + (-X - Y + Z) * s);
+        expand_aabb(localAabb, localAabbInit, coord + ( X - Y + Z) * s);
+        expand_aabb(localAabb, localAabbInit, coord + ( X + Y + Z) * s);
+        expand_aabb(localAabb, localAabbInit, coord + (-X + Y + Z) * s);
+    }
 }
 
 void BlocksRenderer::vertexAO(
@@ -144,17 +161,37 @@ void BlocksRenderer::faceAO(
 
         glm::vec4 tint(d);
         const float nh = 0.75f; // push AO sample a bit farther along normal
-        vertexAO(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, nh, axisX, axisY, axisZ);
-        vertexAO(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, nh, axisX, axisY, axisZ);
-        vertexAO(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
-        vertexAO(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
+        auto p0 = coord + (-X - Y + Z) * s;
+        auto p1 = coord + ( X - Y + Z) * s;
+        auto p2 = coord + ( X + Y + Z) * s;
+        auto p3 = coord + (-X + Y + Z) * s;
+        vertexAO(p0, region.u1, region.v1, tint, nh, axisX, axisY, axisZ);
+        vertexAO(p1, region.u2, region.v1, tint, nh, axisX, axisY, axisZ);
+        vertexAO(p2, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
+        vertexAO(p3, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
+        if (!densePass) {
+            expand_aabb(localAabb, localAabbInit, p0);
+            expand_aabb(localAabb, localAabbInit, p1);
+            expand_aabb(localAabb, localAabbInit, p2);
+            expand_aabb(localAabb, localAabbInit, p3);
+        }
     } else {
         auto axisZ = glm::normalize(Z);
         glm::vec4 tint(1.0f);
-        vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, axisZ, 1);
-        vertex(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, axisZ, 1);
-        vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, axisZ, 1);
-        vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, axisZ, 1);
+        auto p0 = coord + (-X - Y + Z) * s;
+        auto p1 = coord + ( X - Y + Z) * s;
+        auto p2 = coord + ( X + Y + Z) * s;
+        auto p3 = coord + (-X + Y + Z) * s;
+        vertex(p0, region.u1, region.v1, tint, axisZ, 1);
+        vertex(p1, region.u2, region.v1, tint, axisZ, 1);
+        vertex(p2, region.u2, region.v2, tint, axisZ, 1);
+        vertex(p3, region.u1, region.v2, tint, axisZ, 1);
+        if (!densePass) {
+            expand_aabb(localAabb, localAabbInit, p0);
+            expand_aabb(localAabb, localAabbInit, p1);
+            expand_aabb(localAabb, localAabbInit, p2);
+            expand_aabb(localAabb, localAabbInit, p3);
+        }
     }
     index(0, 1, 2, 0, 2, 3);
 }
@@ -646,6 +683,9 @@ SortingMeshData BlocksRenderer::renderTranslucent(
                     aabb.addPoint(vertex.position);
                 }
 
+                // also widen overall local AABB for translucent geometry
+                expand_aabb(localAabb, localAabbInit, vertex.position);
+
                 vertex.position.x += chunk->x * CHUNK_W + 0.5f;
                 vertex.position.y += 0.5f;
                 vertex.position.z += chunk->z * CHUNK_D + 0.5f;
@@ -681,6 +721,9 @@ SortingMeshData BlocksRenderer::renderTranslucent(
 
 void BlocksRenderer::build(const Chunk* chunk, const Chunks* chunks) {
     this->chunk = chunk;
+    // reset local AABB accumulation
+    localAabbInit = false;
+    localAabb = AABB{glm::vec3(0.0f), glm::vec3(0.0f)};
     voxelsBuffer->setPosition(
         chunk->x * CHUNK_W - voxelBufferPadding, 0,
         chunk->z * CHUNK_D - voxelBufferPadding);
@@ -758,7 +801,8 @@ ChunkMeshData BlocksRenderer::createMesh() {
                 ChunkVertex::ATTRIBUTES, sizeof(ChunkVertex::ATTRIBUTES) / sizeof(VertexAttribute)
             )
         ),
-        std::move(sortingMesh)
+        std::move(sortingMesh),
+        localAabbInit ? localAabb : AABB{glm::vec3(0.0f), glm::vec3(0.0f)}
     };
 }
 

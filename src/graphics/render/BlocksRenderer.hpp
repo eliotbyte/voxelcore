@@ -11,6 +11,7 @@
 #include "maths/util.hpp"
 #include "commons.hpp"
 #include "settings.hpp"
+#include "maths/aabb.hpp"
 
 template<typename VertexStructure> class Mesh;
 class Content;
@@ -48,6 +49,9 @@ class BlocksRenderer {
     util::PseudoRandom randomizer;
 
     SortingMeshData sortingMesh;
+    // Accumulated local-space AABB over opaque build pass
+    AABB localAabb {glm::vec3(0.0f), glm::vec3(0.0f)};
+    bool localAabbInit = false;
 
     void vertex(
         const glm::vec3& coord,
@@ -172,6 +176,7 @@ public:
     ChunkMesh render(const Chunk* chunk, const Chunks* chunks);
     ChunkMeshData createMesh();
     VoxelsVolume* getVoxelsBuffer() const;
+    inline const AABB& getLocalAabb() const { return localAabb; }
 
     size_t getMemoryConsumption() const;
 
