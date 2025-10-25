@@ -19,6 +19,36 @@ static debug::Logger logger("chunks-render");
 
 size_t ChunksRenderer::visibleChunks = 0;
 
+namespace {
+struct CullingBounds { glm::vec3 min; glm::vec3 max; };
+
+static inline CullingBounds computeChunkCullingBounds(
+    const Chunk& chunk,
+    const std::unordered_map<glm::ivec2, ChunkMesh>& meshes
+) {
+    glm::vec3 min(chunk.x * CHUNK_W, chunk.bottom, chunk.z * CHUNK_D);
+    glm::vec3 max(
+        chunk.x * CHUNK_W + CHUNK_W,
+        chunk.top,
+        chunk.z * CHUNK_D + CHUNK_D
+    );
+    auto it = meshes.find({chunk.x, chunk.z});
+    if (it != meshes.end()) {
+        const auto& aabb = it->second.localAabb;
+        auto size = aabb.size();
+        if (size.x > 0.0f || size.y > 0.0f || size.z > 0.0f) {
+            min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + 0.5f,
+                             (std::max)(static_cast<float>(chunk.bottom), aabb.min().y + 0.5f),
+                             chunk.z * CHUNK_D + aabb.min().z + 0.5f);
+            max = glm::vec3(chunk.x * CHUNK_W + aabb.max().x + 0.5f,
+                             (std::min)(static_cast<float>(chunk.top), aabb.max().y + 0.5f),
+                             chunk.z * CHUNK_D + aabb.max().z + 0.5f);
+        }
+    }
+    return {min, max};
+}
+}
+
 class RendererWorker : public util::Worker<std::shared_ptr<Chunk>, RendererResult> {
     const Chunks& chunks;
     BlocksRenderer renderer;
@@ -179,22 +209,8 @@ const Mesh<ChunkVertex>* ChunksRenderer::retrieveChunk(
         chunk->updateHeights();
     }
     if (culling) {
-        // Prefer precise per-mesh local AABB if present
-        glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-        glm::vec3 max(chunk->x * CHUNK_W + CHUNK_W, chunk->top, chunk->z * CHUNK_D + CHUNK_D);
-        auto found = meshes.find(glm::ivec2(chunk->x, chunk->z));
-        if (found != meshes.end()) {
-            const auto& aabb = found->second.localAabb;
-            if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
-                min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
-                                 (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
-                                 chunk->z * CHUNK_D + aabb.min().z + 0.5f);
-                max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
-                                 (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
-                                 chunk->z * CHUNK_D + aabb.max().z + 0.5f);
-            }
-        }
-        if (!frustum.isBoxVisible(min, max)) return nullptr;
+        const auto bounds = computeChunkCullingBounds(*chunk, meshes);
+        if (!frustum.isBoxVisible(bounds.min, bounds.max)) return nullptr;
     }
     return mesh;
 }
@@ -226,33 +242,15 @@ void ChunksRenderer::drawShadowsPass(
             pos.x * CHUNK_W + 0.5f, 0.5f, pos.y * CHUNK_D + 0.5f
         );
 
-        glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-        glm::vec3 max(
-            chunk->x * CHUNK_W + CHUNK_W,
-            chunk->top,
-            chunk->z * CHUNK_D + CHUNK_D
-        );
-        // Prefer precise per-mesh bounds if available
-        const auto& found2 = meshes.find(glm::ivec2(chunk->x, chunk->z));
-        if (found2 != meshes.end()) {
-            const auto& aabb = found2->second.localAabb;
-            if (aabb.size().x > 0.0f || aabb.size().y > 0.0f || aabb.size().z > 0.0f) {
-                min = glm::vec3(chunk->x * CHUNK_W + aabb.min().x + 0.5f,
-                                 (std::max)(static_cast<float>(chunk->bottom), aabb.min().y + 0.5f),
-                                 chunk->z * CHUNK_D + aabb.min().z + 0.5f);
-                max = glm::vec3(chunk->x * CHUNK_W + aabb.max().x + 0.5f,
-                                 (std::min)(static_cast<float>(chunk->top), aabb.max().y + 0.5f),
-                                 chunk->z * CHUNK_D + aabb.max().z + 0.5f);
-            }
-        }
-        if (!frustum.isBoxVisible(min, max)) {
+        const auto bounds = computeChunkCullingBounds(*chunk, meshes);
+        if (!frustum.isBoxVisible(bounds.min, bounds.max)) {
             continue;
         }
         glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
         shader.uniformMatrix("u_model", model);
         found->second.mesh->draw(GL_TRIANGLES, 
             glm::distance2(playerCamera.position * glm::vec3(1, 0, 1), 
-                           (min + max) * 0.5f * glm::vec3(1, 0, 1)) < denseDistance2);
+                           (bounds.min + bounds.max) * 0.5f * glm::vec3(1, 0, 1)) < denseDistance2);
     }
 }
 
