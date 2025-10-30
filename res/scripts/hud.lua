@@ -122,6 +122,16 @@ function on_hud_open()
     stream = PCMStream(44100, 1, 16)
     stream:share("test-stream")
     streamid = audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
+
+
+    s = PCMStream(44100, 1, 8)
+    local buffer = Bytearray(44100)
+    for i=1, #buffer do
+        buffer[i] = math.random(1, 8)
+    end
+    s:feed(buffer)
+    s:create_sound("test-sound")
+    audio.play_sound_2d("test-sound", 2.0, 1.0, "ui")
 end
 
 function on_hud_render()

@@ -61,3 +61,7 @@ bool MemoryPCMStream::isSeekable() const {
 }
 
 void MemoryPCMStream::seek(size_t position) {}
+
+size_t MemoryPCMStream::available() const {
+    return buffer.size();
+}

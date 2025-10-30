@@ -31,6 +31,8 @@ namespace audio {
         bool isSeekable() const override;
 
         void seek(size_t position) override;
+
+        size_t available() const;
     private:
         uint sampleRate;
         uint channels;
