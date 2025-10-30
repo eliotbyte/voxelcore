@@ -221,6 +221,9 @@ namespace audio {
         /// @brief Set playhead to the selected time
         /// @param time selected time
         virtual void setTime(duration_t time) = 0;
+
+        virtual bool isStopOnEnd() const = 0;
+        virtual void setStopOnEnd(bool stopOnEnd) = 0;
     };
 
     /// @brief Sound is an audio asset that supposed to support many
@@ -355,6 +358,8 @@ namespace audio {
         inline bool isStopped() const {
             return getState() == State::stopped;
         }
+
+        virtual bool isManuallyStopped() const = 0;
     };
 
     class Backend {

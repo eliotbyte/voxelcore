@@ -61,6 +61,13 @@ namespace audio {
 
         void setTime(duration_t time) override {
         }
+
+        bool isStopOnEnd() const override {
+            return false;
+        }
+
+        void setStopOnEnd(bool stopOnEnd) override {
+        }
     };
 
     class NoAudio : public Backend {

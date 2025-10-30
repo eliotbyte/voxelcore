@@ -464,8 +464,15 @@ void audio::update(double delta) {
             speaker->update(channel);
         }
         if (speaker->isStopped()) {
-            streams.erase(it->first);
-            it = speakers.erase(it);
+            auto foundStream = streams.find(it->first);
+            if (foundStream == streams.end() ||
+                (!speaker->isManuallyStopped() &&
+                 foundStream->second->isStopOnEnd())) {
+                streams.erase(it->first);
+                it = speakers.erase(it);
+            } else {
+                it++;
+            }
         } else {
             it++;
         }

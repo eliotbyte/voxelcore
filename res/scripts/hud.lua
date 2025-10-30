@@ -121,14 +121,7 @@ function on_hud_open()
 
     stream = PCMStream(44100, 1, 16)
     stream:share("test-stream")
-    local bytes = Bytearray(44100 / 8)
-    for i=1,#bytes do
-        local x = math.sin(i * 0.08) * 1 + 0
-        bytes[i] = x
-    end
-    stream:feed(bytes)
-
-    audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
+    streamid = audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
 end
 
 function on_hud_render()
