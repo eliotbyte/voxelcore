@@ -1,3 +1,40 @@
+function crc32(bytes, chksum)
+    local chksum = chksum or 0
+
+    local length = #bytes
+    if type(bytes) == "table" then
+        local buffer_len = _ffi.new('int[1]', length)
+        local buffer = _ffi.new(
+            string.format("char[%s]", length)
+        )
+        for i=1, length do
+            buffer[i - 1] = bytes[i]
+        end
+        bytes = _ffi.string(buffer, buffer_len[0])
+    end
+    return _crc32(bytes, chksum)
+end
+
+-- Check if given table is an array
+function is_array(x)
+    if #x > 0 then
+        return true
+    end
+    for k, v in pairs(x) do
+        return false
+    end
+    return true
+end
+
+-- Get entry-point and filename from `entry-point:filename` path 
+function parse_path(path)
+    local index = string.find(path, ':')
+    if index == nil then
+        error("invalid path syntax (':' missing)")
+    end
+    return string.sub(path, 1, index-1), string.sub(path, index+1, -1)
+end
+
 local breakpoints = {}
 local dbg_steps_mode = false
 local dbg_step_into_func = false
@@ -5,6 +42,7 @@ local hook_lock = false
 local current_func
 local current_func_stack_size
 
+local __parse_path = parse_path
 local _debug_getinfo = debug.getinfo
 local _debug_getlocal = debug.getlocal
 local __pause = debug.pause
@@ -73,6 +111,11 @@ local __pull_events = debug.__pull_events
 local __sendvalue = debug.__sendvalue
 debug.__pull_events = nil
 debug.__sendvalue = nil
+
+function debug.get_pack_by_frame(func)
+    local prefix, _ = __parse_path(_debug_getinfo(func, "S").source)
+    return prefix
+end
 
 function debug.pull_events()
     if not is_debugging then
@@ -192,43 +235,6 @@ function __vc_Canvas_set_data(self, data)
         canvas_ffi_buffer[i] = data[i + 1]
     end
     self:_set_data(tostring(_ffi.cast("uintptr_t", canvas_ffi_buffer)))
-end
-
-function crc32(bytes, chksum)
-    local chksum = chksum or 0
-
-    local length = #bytes
-    if type(bytes) == "table" then
-        local buffer_len = _ffi.new('int[1]', length)
-        local buffer = _ffi.new(
-            string.format("char[%s]", length)
-        )
-        for i=1, length do
-            buffer[i - 1] = bytes[i]
-        end
-        bytes = _ffi.string(buffer, buffer_len[0])
-    end
-    return _crc32(bytes, chksum)
-end
-
--- Check if given table is an array
-function is_array(x)
-    if #x > 0 then
-        return true
-    end
-    for k, v in pairs(x) do
-        return false
-    end
-    return true
-end
-
--- Get entry-point and filename from `entry-point:filename` path 
-function parse_path(path)
-    local index = string.find(path, ':')
-    if index == nil then
-        error("invalid path syntax (':' missing)")
-    end
-    return string.sub(path, 1, index-1), string.sub(path, index+1, -1)
 end
 
 function pack.is_installed(packid)
