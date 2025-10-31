@@ -134,6 +134,10 @@ function on_hud_open()
     audio.play_sound_2d("test-sound", 2.0, 1.0, "ui")
 end
 
+audio.input.request_open(function(token)
+    input_access_token = token
+end)
+
 function on_hud_render()
     if hud.hand_controller then
         hud.hand_controller()
@@ -141,6 +145,8 @@ function on_hud_render()
         update_hand()
     end
 
-    local bytes = audio.fetch_input()
-    stream:feed(bytes)
+    if input_access_token then
+        local bytes = audio.fetch_input(input_access_token)
+        stream:feed(bytes)
+    end
 end

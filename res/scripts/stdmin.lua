@@ -2,7 +2,7 @@ local _ffi = ffi
 local _debug_getinfo = debug.getinfo
 
 function crc32(bytes, chksum)
-    local chksum = chksum or 0
+    chksum = chksum or 0
 
     local length = #bytes
     if type(bytes) == "table" then

@@ -179,6 +179,7 @@ end
 
 require "core:internal/maths_inline"
 require "core:internal/debugging"
+require "core:internal/audio_input"
 asserts = require "core:internal/asserts"
 events = require "core:internal/events"
 
