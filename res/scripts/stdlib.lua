@@ -177,10 +177,8 @@ function inventory.set_description(invid, slot, description)
     inventory.set_data(invid, slot, "description", description)
 end
 
-if enable_experimental then
-    require "core:internal/maths_inline"
-end
-
+require "core:internal/maths_inline"
+require "core:internal/debugging"
 asserts = require "core:internal/asserts"
 events = require "core:internal/events"
 
