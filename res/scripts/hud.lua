@@ -119,12 +119,12 @@ function on_hud_open()
 
     hud.default_hand_controller = update_hand
 
-    stream = PCMStream(44100, 1, 16)
+    stream = audio.PCMStream(44100, 1, 16)
     stream:share("test-stream")
     streamid = audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
 
 
-    s = PCMStream(44100, 1, 8)
+    s = audio.PCMStream(44100, 1, 8)
     local buffer = Bytearray(44100)
     for i=1, #buffer do
         buffer[i] = math.random(1, 8)

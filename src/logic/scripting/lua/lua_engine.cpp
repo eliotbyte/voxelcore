@@ -131,7 +131,6 @@ void lua::init_state(State* L, StateType stateType) {
     newusertype<LuaHeightmap>(L);
     newusertype<LuaVoxelFragment>(L);
     newusertype<LuaCanvas>(L);
-    newusertype<LuaPCMStream>(L);
 }
 
 void lua::initialize(const EnginePaths& paths, const CoreParameters& params) {
@@ -183,6 +182,13 @@ State* lua::create_state(const EnginePaths& paths, StateType stateType) {
     if (getglobal(L, "random")) {
         if (getglobal(L, "__vc_Random")) {
             setfield(L, "Random");
+        }
+        pop(L);
+    }
+    newusertype<LuaPCMStream>(L);
+    if (getglobal(L, "audio")) {
+        if (getglobal(L, "__vc_PCMStream")) {
+            setfield(L, "PCMStream");
         }
         pop(L);
     }

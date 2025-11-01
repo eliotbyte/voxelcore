@@ -18,7 +18,7 @@ namespace lua {
             return TYPENAME;
         }
         static int createMetatable(lua::State*);
-        inline static std::string TYPENAME = "PCMStream";
+        inline static std::string TYPENAME = "__vc_PCMStream";
     private:
         std::shared_ptr<audio::MemoryPCMStream> stream;
     };
