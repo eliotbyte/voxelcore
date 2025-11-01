@@ -21,7 +21,7 @@ size_t ChunksRenderer::visibleChunks = 0;
 
 namespace {
 struct CullingBounds { glm::vec3 min; glm::vec3 max; };
-static constexpr float kChunkCenterBias = 0.5f;
+static constexpr float K_CHUNK_CENTER_BIAS = 0.5f;
 
 static inline bool has_volume(const AABB& aabb) {
     auto s = aabb.size();
@@ -42,12 +42,12 @@ static inline CullingBounds compute_chunk_culling_bounds(
     if (it != meshes.end()) {
         const auto& aabb = it->second.localAabb;
         if (has_volume(aabb)) {
-            min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + kChunkCenterBias,
-                             (std::max)(static_cast<float>(chunk.bottom), aabb.min().y + kChunkCenterBias),
-                             chunk.z * CHUNK_D + aabb.min().z + kChunkCenterBias);
-            max = glm::vec3(chunk.x * CHUNK_W + aabb.max().x + kChunkCenterBias,
-                             (std::min)(static_cast<float>(chunk.top), aabb.max().y + kChunkCenterBias),
-                             chunk.z * CHUNK_D + aabb.max().z + kChunkCenterBias);
+            min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + K_CHUNK_CENTER_BIAS,
+                             (std::max)(static_cast<float>(chunk.bottom), aabb.min().y + K_CHUNK_CENTER_BIAS),
+                             chunk.z * CHUNK_D + aabb.min().z + K_CHUNK_CENTER_BIAS);
+            max = glm::vec3(chunk.x * CHUNK_W + aabb.max().x + K_CHUNK_CENTER_BIAS,
+                             (std::min)(static_cast<float>(chunk.top), aabb.max().y + K_CHUNK_CENTER_BIAS),
+                             chunk.z * CHUNK_D + aabb.max().z + K_CHUNK_CENTER_BIAS);
         }
     }
     return {min, max};
@@ -244,7 +244,7 @@ void ChunksRenderer::drawShadowsPass(
         }
 
         glm::vec3 coord(
-            pos.x * CHUNK_W + kChunkCenterBias, kChunkCenterBias, pos.y * CHUNK_D + kChunkCenterBias
+            pos.x * CHUNK_W + K_CHUNK_CENTER_BIAS, K_CHUNK_CENTER_BIAS, pos.y * CHUNK_D + K_CHUNK_CENTER_BIAS
         );
 
         const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
@@ -302,7 +302,7 @@ void ChunksRenderer::drawChunks(
 
         if (mesh) {
             glm::vec3 coord(
-                chunk->x * CHUNK_W + kChunkCenterBias, kChunkCenterBias, chunk->z * CHUNK_D + kChunkCenterBias
+                chunk->x * CHUNK_W + K_CHUNK_CENTER_BIAS, K_CHUNK_CENTER_BIAS, chunk->z * CHUNK_D + K_CHUNK_CENTER_BIAS
             );
             glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
             shader.uniformMatrix("u_model", model);
