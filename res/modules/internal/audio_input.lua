@@ -19,10 +19,10 @@ function audio.fetch_input(token, size)
     size = size or MAX_FETCH
     if audio_input_tokens_store[token] then
         if #total_fetch >= size then
-            return total_fetch:sub(1, size)
+            return total_fetch:slice(1, size)
         end
         total_fetch:append(_audio_fetch_input(size - #total_fetch))
-        return total_fetch:sub()
+        return total_fetch:slice()
     end
     error("access denied")
 end
