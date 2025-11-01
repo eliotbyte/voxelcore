@@ -23,12 +23,12 @@ namespace {
 struct CullingBounds { glm::vec3 min; glm::vec3 max; };
 static constexpr float kChunkCenterBias = 0.5f;
 
-static inline bool hasVolume(const AABB& aabb) {
+static inline bool has_volume(const AABB& aabb) {
     auto s = aabb.size();
     return s.x > 0.0f || s.y > 0.0f || s.z > 0.0f;
 }
 
-static inline CullingBounds computeChunkCullingBounds(
+static inline CullingBounds compute_chunk_culling_bounds(
     const Chunk& chunk,
     const std::unordered_map<glm::ivec2, ChunkMesh>& meshes
 ) {
@@ -41,7 +41,7 @@ static inline CullingBounds computeChunkCullingBounds(
     auto it = meshes.find({chunk.x, chunk.z});
     if (it != meshes.end()) {
         const auto& aabb = it->second.localAabb;
-        if (hasVolume(aabb)) {
+        if (has_volume(aabb)) {
             min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + kChunkCenterBias,
                              (std::max)(static_cast<float>(chunk.bottom), aabb.min().y + kChunkCenterBias),
                              chunk.z * CHUNK_D + aabb.min().z + kChunkCenterBias);
@@ -214,7 +214,7 @@ const Mesh<ChunkVertex>* ChunksRenderer::retrieveChunk(
         chunk->updateHeights();
     }
     if (culling) {
-        const auto bounds = computeChunkCullingBounds(*chunk, meshes);
+        const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
         if (!frustum.isBoxVisible(bounds.min, bounds.max)) return nullptr;
     }
     return mesh;
@@ -247,7 +247,7 @@ void ChunksRenderer::drawShadowsPass(
             pos.x * CHUNK_W + kChunkCenterBias, kChunkCenterBias, pos.y * CHUNK_D + kChunkCenterBias
         );
 
-        const auto bounds = computeChunkCullingBounds(*chunk, meshes);
+        const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
         if (!frustum.isBoxVisible(bounds.min, bounds.max)) {
             continue;
         }
@@ -366,7 +366,7 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
         }
 
         if (culling) {
-            const auto bounds = computeChunkCullingBounds(*chunk, meshes);
+            const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
             if (!frustum.isBoxVisible(bounds.min, bounds.max)) continue;
         }
 

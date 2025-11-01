@@ -17,26 +17,26 @@ static constexpr float kChunkCenterBias = 0.5f;
 static constexpr float kAoNormalPush = 0.75f;
 static constexpr float kFaceOffsetEps = 1e-3f;
 
-static inline void expandAabbPoint(AABB& aabb, bool& init, const glm::vec3& p) {
+static inline void expand_aabb_point(AABB& aabb, bool& init, const glm::vec3& p) {
     if (!init) { aabb.a = aabb.b = p; init = true; } else { aabb.addPoint(p); }
 }
 
-static inline float applyDirectionalFactor(float d) {
+static inline float apply_directional_factor(float d) {
     return (1.0f - DIRECTIONAL_LIGHT_FACTOR) + d * DIRECTIONAL_LIGHT_FACTOR;
 }
 
-static inline void expandAabb4(
+static inline void expand_aabb_4(
     AABB& aabb, bool& init,
     const glm::vec3& p0, const glm::vec3& p1,
     const glm::vec3& p2, const glm::vec3& p3
 ) {
-    expandAabbPoint(aabb, init, p0);
-    expandAabbPoint(aabb, init, p1);
-    expandAabbPoint(aabb, init, p2);
-    expandAabbPoint(aabb, init, p3);
+    expand_aabb_point(aabb, init, p0);
+    expand_aabb_point(aabb, init, p1);
+    expand_aabb_point(aabb, init, p2);
+    expand_aabb_point(aabb, init, p3);
 }
 
-static inline void fillTexfaces(
+static inline void fill_texfaces(
     const ContentGfxCache& cache,
     blockid_t id, uint8_t variantId, bool densePass,
     UVRegion (&out)[6]
@@ -147,7 +147,7 @@ void BlocksRenderer::face(
 
     // Expand local opaque AABB while vertices are still in chunk-local space
     if (!densePass) {
-        expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
+        expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
     }
 }
 
@@ -187,7 +187,7 @@ void BlocksRenderer::faceAO(
     float s = kChunkCenterBias;
     if (lights) {
         const auto nZ = glm::normalize(Z);
-        float d = applyDirectionalFactor(glm::dot(nZ, SUN_VECTOR));
+        float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
 
         auto axisX = glm::normalize(X);
         auto axisY = glm::normalize(Y);
@@ -204,7 +204,7 @@ void BlocksRenderer::faceAO(
         vertexAO(p2, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
         vertexAO(p3, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
         if (!densePass) {
-            expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
+            expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
         }
     } else {
         auto axisZ = glm::normalize(Z);
@@ -218,7 +218,7 @@ void BlocksRenderer::faceAO(
         vertex(p2, region.u2, region.v2, tint, axisZ, 1);
         vertex(p3, region.u1, region.v2, tint, axisZ, 1);
         if (!densePass) {
-            expandAabb4(localAabb, localAabbInit, p0, p1, p2, p3);
+            expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
         }
     }
     index(0, 1, 2, 0, 2, 3);
@@ -241,7 +241,7 @@ void BlocksRenderer::face(
     float s = kChunkCenterBias;
     const auto nZ = glm::normalize(Z);
     if (lights) {
-        float d = applyDirectionalFactor(glm::dot(nZ, SUN_VECTOR));
+        float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
         tint *= d;
     }
     const auto nZ2 = lights ? nZ : Z;
@@ -404,7 +404,7 @@ void BlocksRenderer::blockCustomModel(
                 continue;
             }
 
-            float d = applyDirectionalFactor(glm::dot(n, SUN_VECTOR));
+            float d = apply_directional_factor(glm::dot(n, SUN_VECTOR));
             glm::vec3 t = glm::cross(r, n);
 
             for (int i = 0; i < 3; i++) {
@@ -576,7 +576,7 @@ void BlocksRenderer::render(
                 continue;
             }
             UVRegion texfaces[6];
-            fillTexfaces(cache, id, variantId, densePass, texfaces);
+            fill_texfaces(cache, id, variantId, densePass, texfaces);
             int x = i % CHUNK_W;
             int y = i / (CHUNK_D * CHUNK_W);
             int z = (i / CHUNK_D) % CHUNK_W;
@@ -648,7 +648,7 @@ SortingMeshData BlocksRenderer::renderTranslucent(
                 continue;
             }
             UVRegion texfaces[6];
-            fillTexfaces(cache, id, variantId, densePass, texfaces);
+            fill_texfaces(cache, id, variantId, densePass, texfaces);
             int x = i % CHUNK_W;
             int y = i / (CHUNK_D * CHUNK_W);
             int z = (i / CHUNK_D) % CHUNK_W;
