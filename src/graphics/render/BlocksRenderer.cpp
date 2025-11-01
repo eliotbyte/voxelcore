@@ -13,9 +13,9 @@ const glm::vec3 BlocksRenderer::SUN_VECTOR(0.528265f, 0.833149f, -0.163704f);
 const float DIRECTIONAL_LIGHT_FACTOR = 0.3f;
 
 namespace {
-static constexpr float kChunkCenterBias = 0.5f;
-static constexpr float kAoNormalPush = 0.75f;
-static constexpr float kFaceOffsetEps = 1e-3f;
+static constexpr float K_CHUNK_CENTER_BIAS = 0.5f;
+static constexpr float K_AO_NORMAL_PUSH = 0.75f;
+static constexpr float K_FACE_OFFSET_EPS = 1e-3f;
 
 static inline void expand_aabb_point(AABB& aabb, bool& init, const glm::vec3& p) {
     if (!init) { aabb.a = aabb.b = p; init = true; } else { aabb.addPoint(p); }
@@ -134,7 +134,7 @@ void BlocksRenderer::face(
     auto X = axisX * w;
     auto Y = axisY * h;
     auto Z = axisZ * d;
-    float s = kChunkCenterBias;
+    float s = K_CHUNK_CENTER_BIAS;
     auto p0 = coord + (-X - Y + Z) * s;
     auto p1 = coord + ( X - Y + Z) * s;
     auto p2 = coord + ( X + Y + Z) * s;
@@ -184,7 +184,7 @@ void BlocksRenderer::faceAO(
         return;
     }
 
-    float s = kChunkCenterBias;
+    float s = K_CHUNK_CENTER_BIAS;
     if (lights) {
         const auto nZ = glm::normalize(Z);
         float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
@@ -194,7 +194,7 @@ void BlocksRenderer::faceAO(
         auto axisZ = nZ;
 
         glm::vec4 tint(d);
-        const float nh = kAoNormalPush; // push AO sample a bit farther along normal
+        const float nh = K_AO_NORMAL_PUSH; // push AO sample a bit farther along normal
         auto p0 = coord + (-X - Y + Z) * s;
         auto p1 = coord + ( X - Y + Z) * s;
         auto p2 = coord + ( X + Y + Z) * s;
@@ -238,7 +238,7 @@ void BlocksRenderer::face(
         return;
     }
 
-    float s = kChunkCenterBias;
+    float s = K_CHUNK_CENTER_BIAS;
     const auto nZ = glm::normalize(Z);
     if (lights) {
         float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
