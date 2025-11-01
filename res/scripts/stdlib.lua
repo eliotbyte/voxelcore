@@ -211,11 +211,6 @@ entities.get_all = function(uids)
     end
 end
 
-local bytearray = require "core:internal/bytearray"
-Bytearray = bytearray.FFIBytearray
-Bytearray_as_string = bytearray.FFIBytearray_as_string
-Bytearray_construct = function(...) return Bytearray(...) end
-
 __vc_scripts_registry = require "core:internal/scripts_registry"
 
 file.open = require "core:internal/stream_providers/file"
@@ -424,6 +419,9 @@ end
 
 local __post_runnables = {}
 
+local fn_audio_reset_fetch_buffer = audio.__reset_fetch_buffer
+audio.__reset_fetch_buffer = nil
+
 function __process_post_runnables()
     if #__post_runnables then
         for _, func in ipairs(__post_runnables) do
@@ -449,6 +447,7 @@ function __process_post_runnables()
         __vc_named_coroutines[name] = nil
     end
 
+    fn_audio_reset_fetch_buffer()
     debug.pull_events()
     network.__process_events()
     block.__process_register_events()

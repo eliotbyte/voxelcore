@@ -265,6 +265,12 @@ require "core:internal/extensions/math"
 require "core:internal/extensions/file"
 require "core:internal/extensions/table"
 require "core:internal/extensions/string"
+
+local bytearray = require "core:internal/bytearray"
+Bytearray = bytearray.FFIBytearray
+Bytearray_as_string = bytearray.FFIBytearray_as_string
+Bytearray_construct = function(...) return Bytearray(...) end
+
 bit.compile = require "core:bitwise/compiler"
 bit.execute = require "core:bitwise/executor"
 
