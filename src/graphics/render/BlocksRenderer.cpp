@@ -245,10 +245,17 @@ void BlocksRenderer::face(
         tint *= d;
     }
     const auto nZ2 = lights ? nZ : Z;
-    vertex(coord + (-X - Y + Z) * s, region.u1, region.v1, tint, nZ2, lights ? 0 : 1);
-    vertex(coord + ( X - Y + Z) * s, region.u2, region.v1, tint, nZ2, lights ? 0 : 1);
-    vertex(coord + ( X + Y + Z) * s, region.u2, region.v2, tint, nZ2, lights ? 0 : 1);
-    vertex(coord + (-X + Y + Z) * s, region.u1, region.v2, tint, nZ2, lights ? 0 : 1);
+    auto p0 = coord + (-X - Y + Z) * s;
+    auto p1 = coord + ( X - Y + Z) * s;
+    auto p2 = coord + ( X + Y + Z) * s;
+    auto p3 = coord + (-X + Y + Z) * s;
+    vertex(p0, region.u1, region.v1, tint, nZ2, lights ? 0 : 1);
+    vertex(p1, region.u2, region.v1, tint, nZ2, lights ? 0 : 1);
+    vertex(p2, region.u2, region.v2, tint, nZ2, lights ? 0 : 1);
+    vertex(p3, region.u1, region.v2, tint, nZ2, lights ? 0 : 1);
+    if (!densePass) {
+        expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
+    }
     index(0, 1, 2, 0, 2, 3);
 }
 

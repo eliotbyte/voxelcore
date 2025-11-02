@@ -22,6 +22,8 @@ size_t ChunksRenderer::visibleChunks = 0;
 namespace {
 struct CullingBounds { glm::vec3 min; glm::vec3 max; };
 static constexpr float K_CHUNK_CENTER_BIAS = 0.5f;
+// Minimal thickness to avoid culling flicker for geometry that forms 2D sheets
+static constexpr float K_AABB_MIN_EXTENT = 1e-2f;
 
 static inline bool has_volume(const AABB& aabb) {
     auto s = aabb.size();
@@ -42,12 +44,28 @@ static inline CullingBounds compute_chunk_culling_bounds(
     if (it != meshes.end()) {
         const auto& aabb = it->second.localAabb;
         if (has_volume(aabb)) {
+            // Convert to world coords (same 0.5 bias as draw model matrix)
             min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + K_CHUNK_CENTER_BIAS,
-                             (std::max)(static_cast<float>(chunk.bottom), aabb.min().y + K_CHUNK_CENTER_BIAS),
-                             chunk.z * CHUNK_D + aabb.min().z + K_CHUNK_CENTER_BIAS);
+                            aabb.min().y + K_CHUNK_CENTER_BIAS,
+                            chunk.z * CHUNK_D + aabb.min().z + K_CHUNK_CENTER_BIAS);
             max = glm::vec3(chunk.x * CHUNK_W + aabb.max().x + K_CHUNK_CENTER_BIAS,
-                             (std::min)(static_cast<float>(chunk.top), aabb.max().y + K_CHUNK_CENTER_BIAS),
-                             chunk.z * CHUNK_D + aabb.max().z + K_CHUNK_CENTER_BIAS);
+                            aabb.max().y + K_CHUNK_CENTER_BIAS,
+                            chunk.z * CHUNK_D + aabb.max().z + K_CHUNK_CENTER_BIAS);
+
+            // Clamp vertically to chunk vertical span to keep bounds tight and valid
+            min.y = (std::max)(static_cast<float>(chunk.bottom), min.y);
+            max.y = (std::min)(static_cast<float>(chunk.top),    max.y);
+
+            // Ensure non-degenerate extents to avoid view-dependent flicker
+            glm::vec3 size = max - min;
+            auto inflate_axis = [&](int axis) {
+                float c = (min[axis] + max[axis]) * 0.5f;
+                min[axis] = c - K_AABB_MIN_EXTENT * 0.5f;
+                max[axis] = c + K_AABB_MIN_EXTENT * 0.5f;
+            };
+            if (size.x < K_AABB_MIN_EXTENT) inflate_axis(0);
+            if (size.y < K_AABB_MIN_EXTENT) inflate_axis(1);
+            if (size.z < K_AABB_MIN_EXTENT) inflate_axis(2);
         }
     }
     return {min, max};
