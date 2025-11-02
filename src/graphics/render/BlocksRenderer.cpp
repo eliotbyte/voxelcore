@@ -36,6 +36,29 @@ static inline void expand_aabb_4(
     expand_aabb_point(aabb, init, p3);
 }
 
+static inline void expand_aabb_4_if_needed(
+    AABB& aabb, bool& init, bool densePass,
+    const glm::vec3& p0, const glm::vec3& p1,
+    const glm::vec3& p2, const glm::vec3& p3
+) {
+    if (!densePass) {
+        expand_aabb_4(aabb, init, p0, p1, p2, p3);
+    }
+}
+
+static inline void compute_face_points(
+    const glm::vec3& coord,
+    const glm::vec3& X, const glm::vec3& Y, const glm::vec3& Z,
+    float bias,
+    glm::vec3& p0, glm::vec3& p1, glm::vec3& p2, glm::vec3& p3
+) {
+    float s = bias;
+    p0 = coord + (-X - Y + Z) * s;
+    p1 = coord + ( X - Y + Z) * s;
+    p2 = coord + ( X + Y + Z) * s;
+    p3 = coord + (-X + Y + Z) * s;
+}
+
 static inline void fill_texfaces(
     const ContentGfxCache& cache,
     blockid_t id, uint8_t variantId, bool densePass,
@@ -107,15 +130,6 @@ void BlocksRenderer::index(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint3
     vertexOffset += 4;
 }
 
-static inline void expand_aabb(AABB& aabb, bool& init, const glm::vec3& p) {
-    if (!init) {
-        aabb.a = aabb.b = p;
-        init = true;
-    } else {
-        aabb.addPoint(p);
-    }
-}
-
 /// @brief Add face with precalculated lights
 void BlocksRenderer::face(
     const glm::vec3& coord,
@@ -134,11 +148,8 @@ void BlocksRenderer::face(
     auto X = axisX * w;
     auto Y = axisY * h;
     auto Z = axisZ * d;
-    float s = K_CHUNK_CENTER_BIAS;
-    auto p0 = coord + (-X - Y + Z) * s;
-    auto p1 = coord + ( X - Y + Z) * s;
-    auto p2 = coord + ( X + Y + Z) * s;
-    auto p3 = coord + (-X + Y + Z) * s;
+    glm::vec3 p0, p1, p2, p3;
+    compute_face_points(coord, X, Y, Z, K_CHUNK_CENTER_BIAS, p0, p1, p2, p3);
     vertex(p0, region.u1, region.v1, lights[0] * tint, axisZ, 0);
     vertex(p1, region.u2, region.v1, lights[1] * tint, axisZ, 0);
     vertex(p2, region.u2, region.v2, lights[2] * tint, axisZ, 0);
@@ -146,9 +157,7 @@ void BlocksRenderer::face(
     index(0, 1, 3, 1, 2, 3);
 
     // Expand local opaque AABB while vertices are still in chunk-local space
-    if (!densePass) {
-        expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
-    }
+    expand_aabb_4_if_needed(localAabb, localAabbInit, densePass, p0, p1, p2, p3);
 }
 
 void BlocksRenderer::vertexAO(
@@ -184,7 +193,6 @@ void BlocksRenderer::faceAO(
         return;
     }
 
-    float s = K_CHUNK_CENTER_BIAS;
     if (lights) {
         const auto nZ = glm::normalize(Z);
         float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
@@ -195,31 +203,23 @@ void BlocksRenderer::faceAO(
 
         glm::vec4 tint(d);
         const float nh = K_AO_NORMAL_PUSH; // push AO sample a bit farther along normal
-        auto p0 = coord + (-X - Y + Z) * s;
-        auto p1 = coord + ( X - Y + Z) * s;
-        auto p2 = coord + ( X + Y + Z) * s;
-        auto p3 = coord + (-X + Y + Z) * s;
+        glm::vec3 p0, p1, p2, p3;
+        compute_face_points(coord, X, Y, Z, K_CHUNK_CENTER_BIAS, p0, p1, p2, p3);
         vertexAO(p0, region.u1, region.v1, tint, nh, axisX, axisY, axisZ);
         vertexAO(p1, region.u2, region.v1, tint, nh, axisX, axisY, axisZ);
         vertexAO(p2, region.u2, region.v2, tint, nh, axisX, axisY, axisZ);
         vertexAO(p3, region.u1, region.v2, tint, nh, axisX, axisY, axisZ);
-        if (!densePass) {
-            expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
-        }
+        expand_aabb_4_if_needed(localAabb, localAabbInit, densePass, p0, p1, p2, p3);
     } else {
         auto axisZ = glm::normalize(Z);
         glm::vec4 tint(1.0f);
-        auto p0 = coord + (-X - Y + Z) * s;
-        auto p1 = coord + ( X - Y + Z) * s;
-        auto p2 = coord + ( X + Y + Z) * s;
-        auto p3 = coord + (-X + Y + Z) * s;
+        glm::vec3 p0, p1, p2, p3;
+        compute_face_points(coord, X, Y, Z, K_CHUNK_CENTER_BIAS, p0, p1, p2, p3);
         vertex(p0, region.u1, region.v1, tint, axisZ, 1);
         vertex(p1, region.u2, region.v1, tint, axisZ, 1);
         vertex(p2, region.u2, region.v2, tint, axisZ, 1);
         vertex(p3, region.u1, region.v2, tint, axisZ, 1);
-        if (!densePass) {
-            expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
-        }
+        expand_aabb_4_if_needed(localAabb, localAabbInit, densePass, p0, p1, p2, p3);
     }
     index(0, 1, 2, 0, 2, 3);
 }
@@ -238,24 +238,19 @@ void BlocksRenderer::face(
         return;
     }
 
-    float s = K_CHUNK_CENTER_BIAS;
     const auto nZ = glm::normalize(Z);
     if (lights) {
         float d = apply_directional_factor(glm::dot(nZ, SUN_VECTOR));
         tint *= d;
     }
     const auto nZ2 = lights ? nZ : Z;
-    auto p0 = coord + (-X - Y + Z) * s;
-    auto p1 = coord + ( X - Y + Z) * s;
-    auto p2 = coord + ( X + Y + Z) * s;
-    auto p3 = coord + (-X + Y + Z) * s;
+    glm::vec3 p0, p1, p2, p3;
+    compute_face_points(coord, X, Y, Z, K_CHUNK_CENTER_BIAS, p0, p1, p2, p3);
     vertex(p0, region.u1, region.v1, tint, nZ2, lights ? 0 : 1);
     vertex(p1, region.u2, region.v1, tint, nZ2, lights ? 0 : 1);
     vertex(p2, region.u2, region.v2, tint, nZ2, lights ? 0 : 1);
     vertex(p3, region.u1, region.v2, tint, nZ2, lights ? 0 : 1);
-    if (!densePass) {
-        expand_aabb_4(localAabb, localAabbInit, p0, p1, p2, p3);
-    }
+    expand_aabb_4_if_needed(localAabb, localAabbInit, densePass, p0, p1, p2, p3);
     index(0, 1, 2, 0, 2, 3);
 }
 
@@ -434,7 +429,7 @@ void BlocksRenderer::blockCustomModel(
                     mesh.shading ? 0.0f : 1.0
                 );
                 if (!densePass) {
-                    expand_aabb(localAabb, localAabbInit, pLocal);
+                    expand_aabb_point(localAabb, localAabbInit, pLocal);
                 }
                 indexBuffer[indexCount++] = vertexOffset++;
             }
@@ -711,7 +706,7 @@ SortingMeshData BlocksRenderer::renderTranslucent(
                 }
 
                 // also widen overall local AABB for translucent geometry
-                expand_aabb(localAabb, localAabbInit, vertex.position);
+                expand_aabb_point(localAabb, localAabbInit, vertex.position);
 
                 vertex.position.x += chunk->x * CHUNK_W + 0.5f;
                 vertex.position.y += 0.5f;
