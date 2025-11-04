@@ -104,6 +104,7 @@ namespace audio {
         uint getChannels() const override;
         uint getSampleRate() const override;
         uint getBitsPerSample() const override;
+        const std::string& getDeviceSpecifier() const override;
 
         size_t read(char* buffer, size_t bufferSize) override;
     private:
@@ -112,6 +113,7 @@ namespace audio {
         uint channels;
         uint bitsPerSample;
         uint sampleRate;
+        std::string deviceSpecifier;
     };
 
     /// @brief AL source adapter

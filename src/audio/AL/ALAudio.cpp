@@ -79,6 +79,13 @@ ALInputDevice::ALInputDevice(
       channels(channels),
       bitsPerSample(bitsPerSample),
       sampleRate(sampleRate) {
+    const ALCchar* deviceName = alcGetString(device, ALC_CAPTURE_DEVICE_SPECIFIER);
+
+    if (deviceName) {
+        deviceSpecifier = std::string(deviceName);
+    } else {
+        logger.warning() << "could not retrieve input device specifier";
+    }
 }
 
 ALInputDevice::~ALInputDevice() {
@@ -106,6 +113,10 @@ uint ALInputDevice::getSampleRate() const {
 
 uint ALInputDevice::getBitsPerSample() const {
     return bitsPerSample;
+}
+
+const std::string& ALInputDevice::getDeviceSpecifier() const {
+    return deviceSpecifier;
 }
 
 size_t ALInputDevice::read(char* buffer, size_t bufferSize) {

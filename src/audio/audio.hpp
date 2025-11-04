@@ -127,7 +127,12 @@ namespace audio {
         /// @return 8 or 16
         virtual uint getBitsPerSample() const = 0;
 
+        /// @brief Read available data to buffer.
+        /// @return size of data received or PCMStream::ERROR in case of error
         virtual size_t read(char* buffer, size_t bufferSize) = 0;
+
+        /// @brief Get device specifier string
+        virtual const std::string& getDeviceSpecifier() const = 0;
     };
 
     /// @brief audio::PCMStream is a data source for audio::Stream

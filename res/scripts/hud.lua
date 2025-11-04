@@ -119,6 +119,8 @@ function on_hud_open()
 
     hud.default_hand_controller = update_hand
 
+    debug.print(audio.get_input_devices_names())
+
     stream = audio.PCMStream(44100, 1, 16)
     stream:share("test-stream")
     streamid = audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
@@ -147,7 +149,9 @@ function on_hud_render()
     end
 
     if input_access_token then
-        local bytes = audio.fetch_input(input_access_token)
-        stream:feed(bytes)
+        local bytes = audio.input.fetch_input(input_access_token)
+        if bytes then
+            stream:feed(bytes)
+        end
     end
 end

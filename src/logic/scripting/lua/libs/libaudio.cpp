@@ -441,7 +441,9 @@ static int l_audio_get_input_info(lua::State* L) {
     if (device == nullptr) {
         return 0;
     }
-    lua::createtable(L, 0, 3);
+    lua::createtable(L, 0, 4);
+    lua::pushlstring(L, device->getDeviceSpecifier());
+    lua::setfield(L, "device_specifier");
     lua::pushinteger(L, device->getChannels());
     lua::setfield(L, "channels");
     lua::pushinteger(L, device->getSampleRate());
