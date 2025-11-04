@@ -114,6 +114,20 @@ events = require "core:internal/events"
 
 function pack.unload(prefix)
     events.remove_by_prefix(prefix)
+    __vc__pack_envs[prefix] = nil
+end
+
+function __vc_start_app_script(path)
+    debug.log("starting application script "..path)
+
+    local code = file.read(path)
+    local chunk, err = loadstring(code, path)
+    if chunk == nil then
+        error(err)
+    end
+    local script_env = setmetatable({app = app or __vc_app}, {__index=_G})
+    chunk = setfenv(chunk, script_env)
+    return __vc_start_coroutine(chunk, path)
 end
 
 gui_util = require "core:internal/gui_util"
