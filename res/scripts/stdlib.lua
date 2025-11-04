@@ -198,8 +198,8 @@ function __vc_start_app_script(path)
         error(err)
     end
     local script_env = setmetatable({app = app or __vc_app}, {__index=_G})
-    setfenv(chunk, script_env)
-    return start_coroutine(chunk, path)
+    chunk = setfenv(chunk, script_env)
+    return __vc_start_coroutine(chunk, path)
 end
 
 gui_util = require "core:internal/gui_util"

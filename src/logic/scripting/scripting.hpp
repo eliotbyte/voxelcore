@@ -76,7 +76,6 @@ namespace scripting {
         const io::path& script
     );
 
-    std::unique_ptr<Process> start_coroutine(const io::path& script);
     std::unique_ptr<Process> start_app_script(const io::path& script);
 
     void on_world_load(LevelController* controller);
