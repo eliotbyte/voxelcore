@@ -19,6 +19,8 @@
 #include "graphics/ui/gui_util.hpp"
 #include "graphics/ui/markdown.hpp"
 #include "graphics/core/Font.hpp"
+#include "content/Content.hpp"
+#include "content/ContentPack.hpp"
 #include "items/Inventories.hpp"
 #include "util/stringutil.hpp"
 #include "world/Level.hpp"
@@ -1026,13 +1028,17 @@ static int l_gui_load_document(lua::State* L) {
     io::path filename = lua::require_string(L, 1);
     auto alias = lua::require_string(L, 2);
     auto args = lua::tovalue(L, 3);
-    
+    auto prefix = filename.entryPoint();
+
+    auto env = scripting::get_root_environment();
+    if (content) {
+        if (auto runtime = content->getPackRuntime(prefix)) {
+            env = runtime->getEnvironment();
+        }
+    }
+
     auto documentPtr = UiDocument::read(
-        engine->getGUI(),
-        scripting::get_root_environment(),
-        alias,
-        filename,
-        filename.string()
+        engine->getGUI(), std::move(env), alias, filename, filename.string()
     );
     auto document = documentPtr.get();
     engine->getAssets()->store(std::move(documentPtr), alias);

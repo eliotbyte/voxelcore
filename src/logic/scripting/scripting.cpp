@@ -151,12 +151,10 @@ std::unique_ptr<IClientProjectScript> scripting::load_client_project_script(
     return std::make_unique<LuaProjectScript>(L, std::move(env));
 }
 
-std::unique_ptr<Process> scripting::start_coroutine(const io::path& script) {
+std::unique_ptr<Process> scripting::start_app_script(const io::path& script) {
     auto L = lua::get_main_state();
-    auto method = "__vc_start_coroutine";
-    if (lua::getglobal(L, method)) {
-        auto source = io::read_string(script);
-        lua::loadbuffer(L, 0, source, script.name());
+    if (lua::getglobal(L, "__vc_start_app_script")) {
+        lua::pushstring(L, script.string());
         if (lua::call(L, 1)) {
             int id = lua::tointeger(L, -1);
             lua::pop(L, 1);
