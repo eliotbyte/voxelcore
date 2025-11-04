@@ -106,6 +106,7 @@ settings.Shadows quality=Качество теней
 settings.Conflict=Найдены возможные конфликты
 settings.Windowed=Оконный
 settings.Borderless=Безрамочный
+settings.Microphone=Микрофон
 
 # Управление
 chunks.reload=Перезагрузить Чанки

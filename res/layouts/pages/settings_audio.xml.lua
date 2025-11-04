@@ -38,12 +38,13 @@ function on_open()
             if amplitude > 0.0 then
                 amplitude = math.sqrt(amplitude)
             end
+            amplitude = math.max(amplitude, prev_amplitude - time.delta())
             document.input_volume_inner.size = {
                 prev_amplitude *
                 document.input_volume_outer.size[1],
                 document.input_volume_outer.size[2]
             }
-            prev_amplitude = amplitude * 0.25 + prev_amplitude * 0.75
+            prev_amplitude = amplitude
         end)
     end
     create_setting("audio.volume-master", "Master Volume", 0.01)
@@ -51,10 +52,11 @@ function on_open()
     create_setting("audio.volume-ui", "UI Sounds", 0.01)
     create_setting("audio.volume-ambient", "Ambient", 0.01)
     create_setting("audio.volume-music", "Music", 0.01)
+    document.root:add("<label context='settings'>@Microphone</label>")
     document.root:add("<select id='input_device_select' "..
         "onselect='function(opt) audio.set_input_device(opt) end'/>")
     document.root:add("<container id='input_volume_outer' color='#000000' size='4'>"
-                        .."<container id='input_volume_inner' color='#00FF00FF' size='4'/>"
+                        .."<container id='input_volume_inner' color='#00FF00FF' pos='1' size='2'/>"
                     .."</container>")
     local selectbox = document.input_device_select
     local devices = {}
