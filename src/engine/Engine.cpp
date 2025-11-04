@@ -26,6 +26,7 @@
 #include "graphics/core/ImageData.hpp"
 #include "graphics/core/Shader.hpp"
 #include "graphics/ui/GUI.hpp"
+#include "graphics/ui/elements/Menu.hpp"
 #include "objects/rigging.hpp"
 #include "logic/EngineController.hpp"
 #include "logic/CommandsInterpreter.hpp"
@@ -154,6 +155,14 @@ void Engine::initializeClient() {
         },
         true
     ));
+
+    keepAlive(this->input->addKeyCallback(Keycode::ESCAPE, [this]() {
+        auto& menu = *gui->getMenu();
+        if (menu.hasOpenPage() && menu.back()) {
+            return true;
+        }
+        return false;
+    }));
 }
 
 void Engine::initialize(CoreParameters coreParameters) {
