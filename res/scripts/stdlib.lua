@@ -441,7 +441,9 @@ function __vc_on_hud_open()
     end)
     input.add_callback("key:escape", function()
         if menu.page ~= "" then
-            menu:reset()
+            if not menu:back() then
+                menu:reset()
+            end
         elseif hud.is_inventory_open() then
             hud.close_inventory()
         else
