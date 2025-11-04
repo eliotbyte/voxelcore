@@ -191,6 +191,12 @@ function on_hud_open(playerid: int)
 Called after world open.
 
 ```lua
+function on_hud_render()
+```
+
+Called every frame. Used for client-side tasks such as animation and camera control.
+
+```lua
 function on_hud_close(playerid: int)
 ```
 
