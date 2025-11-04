@@ -54,6 +54,12 @@ void Texture::reload(const ubyte* data) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Texture::reloadPartial(const ImageData& image, uint x, uint y, uint w, uint h) {
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, image.getData());
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 std::unique_ptr<ImageData> Texture::readData() {
     auto data = std::make_unique<ubyte[]>(width * height * 4);
     glBindTexture(GL_TEXTURE_2D, id);
