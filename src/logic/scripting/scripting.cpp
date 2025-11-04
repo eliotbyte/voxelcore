@@ -151,9 +151,10 @@ std::unique_ptr<IClientProjectScript> scripting::load_client_project_script(
     return std::make_unique<LuaProjectScript>(L, std::move(env));
 }
 
-std::unique_ptr<Process> scripting::start_coroutine(const io::path& script) {
+static std::unique_ptr<Process> start_lua_coroutine(
+    const io::path& script, const std::string& method
+) {
     auto L = lua::get_main_state();
-    auto method = "__vc_start_coroutine";
     if (lua::getglobal(L, method)) {
         auto source = io::read_string(script);
         lua::loadbuffer(L, 0, source, script.name());
@@ -165,6 +166,14 @@ std::unique_ptr<Process> scripting::start_coroutine(const io::path& script) {
         lua::pop(L);
     }
     return nullptr;
+}
+
+std::unique_ptr<Process> scripting::start_coroutine(const io::path& script) {
+    return start_lua_coroutine(script, "__vc_start_coroutine");
+}
+
+std::unique_ptr<Process> scripting::start_app_script(const io::path& script) {
+    return start_lua_coroutine(script, "__vc_start_app_script");
 }
 
 [[nodiscard]] scriptenv scripting::get_root_environment() {

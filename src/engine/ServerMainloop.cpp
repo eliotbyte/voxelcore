@@ -32,8 +32,7 @@ void ServerMainloop::run() {
         setLevel(std::move(level));
     });
 
-    logger.info() << "starting test " << coreParams.scriptFile.string();
-    auto process = scripting::start_coroutine(
+    auto process = scripting::start_app_script(
         "script:" + coreParams.scriptFile.filename().u8string()
     );
 
