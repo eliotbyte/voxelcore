@@ -10,14 +10,59 @@
 using namespace lua;
 
 LuaCanvas::LuaCanvas(
-    std::shared_ptr<Texture> inTexture, std::shared_ptr<ImageData> inData
+    std::shared_ptr<Texture> texture,
+    std::shared_ptr<ImageData> data,
+    UVRegion region
 )
-    : mTexture(std::move(inTexture)), mData(std::move(inData)) {
+    : texture(std::move(texture)),
+      data(std::move(data)),
+      region(std::move(region)) {
+}
+
+void LuaCanvas::update(int extrusion) {
+    if (!hasTexture()) {
+        return;
+    }
+    if (region.isFull()) {
+        texture->reload(*data);
+    } else {
+        uint texWidth = texture->getWidth();
+        uint texHeight = texture->getHeight();
+        uint imgWidth = data->getWidth();
+        uint imgHeight = data->getHeight();
+
+        uint x = static_cast<uint>(region.u1 * texWidth);
+        uint y = static_cast<uint>(region.v1 * texHeight);
+        uint w = static_cast<uint>((region.u2 - region.u1) * texWidth);
+        uint h = static_cast<uint>((region.v2 - region.v1) * texHeight);
+
+        w = std::min<uint>(w, imgWidth);
+        h = std::min<uint>(h, imgHeight);
+
+        if (extrusion > 0) {
+            auto extruded = std::make_unique<ImageData>(
+                data->getFormat(),
+                w + extrusion * 2,
+                h + extrusion * 2
+            );
+            extruded->blit(*data, extrusion, extrusion);
+            extruded->extrude(0, 0, w + extrusion * 2, h + extrusion * 2);
+            texture->reloadPartial(
+                *extruded,
+                x - extrusion,
+                y - extrusion,
+                w + extrusion * 2,
+                h + extrusion * 2
+            );
+        } else {
+            texture->reloadPartial(*data, x, y, w, h);
+        }
+    }
 }
 
 void LuaCanvas::createTexture() {
-    mTexture = Texture::from(mData.get());
-    mTexture->setMipMapping(false, true);
+    texture = Texture::from(data.get());
+    texture->setMipMapping(false, true);
 }
 
 union RGBA {
@@ -41,7 +86,7 @@ static RGBA* get_at(const ImageData& data, uint x, uint y) {
 
 static RGBA* get_at(State* L, uint x, uint y) {
     if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
-        return get_at(canvas->data(), x, y);
+        return get_at(canvas->getData(), x, y);
     }
     return nullptr;
 }
@@ -97,7 +142,7 @@ static LuaCanvas& require_canvas(State* L, int idx) {
 
 static int l_clear(State* L) {
     auto& canvas = require_canvas(L, 1);
-    auto& image = canvas.data();
+    auto& image = canvas.getData();
     ubyte* data = image.getData();
     RGBA rgba {};
     if (gettop(L) == 1) {
@@ -122,7 +167,7 @@ static int l_line(State* L) {
 
     RGBA rgba = get_rgba(L, 6);
     if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
-        auto& image = canvas->data();
+        auto& image = canvas->getData();
         image.drawLine(
             x1, y1, x2, y2, glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a}
         );
@@ -135,13 +180,13 @@ static int l_blit(State* L) {
     auto& src = require_canvas(L, 2);
     int dst_x = tointeger(L, 3);
     int dst_y = tointeger(L, 4);
-    dst.data().blit(src.data(), dst_x, dst_y);
+    dst.getData().blit(src.getData(), dst_x, dst_y);
     return 0;
 }
 
 static int l_set_data(State* L) {
     auto& canvas = require_canvas(L, 1);
-    auto& image = canvas.data();
+    auto& image = canvas.getData();
     auto data = image.getData();
 
     if (lua::isstring(L, 2)) {
@@ -166,9 +211,7 @@ static int l_set_data(State* L) {
 
 static int l_update(State* L) {
     if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
-        if (canvas->hasTexture()) {
-            canvas->texture().reload(canvas->data());
-        }
+        canvas->update();
     }
     return 0;
 }
@@ -202,7 +245,7 @@ static int l_meta_index(State* L) {
     if (texture == nullptr) {
         return 0;
     }
-    auto& data = texture->data();
+    auto& data = texture->getData();
     if (isnumber(L, 2)) {
         if (auto pixel = get_at(data, static_cast<uint>(tointeger(L, 2)))) {
             return pushinteger(L, pixel->rgba);
@@ -231,7 +274,7 @@ static int l_meta_newindex(State* L) {
     if (texture == nullptr) {
         return 0;
     }
-    auto& data = texture->data();
+    auto& data = texture->getData();
     if (isnumber(L, 2) && isnumber(L, 3)) {
         if (auto pixel = get_at(data, static_cast<uint>(tointeger(L, 2)))) {
             pixel->rgba = static_cast<uint>(tointeger(L, 3));

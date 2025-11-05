@@ -95,6 +95,17 @@ void ImageData::blit(const ImageData& image, int x, int y) {
     throw std::runtime_error("mismatching format");
 }
 
+std::unique_ptr<ImageData> ImageData::cropped(int x, int y, int width, int height) const {
+    width = std::min<int>(width, this->width - x);
+    height = std::min<int>(height, this->height - y);
+    if (width <= 0 || height <= 0) {
+        throw std::runtime_error("invalid crop dimensions");
+    }
+    auto subImage = std::make_unique<ImageData>(format, width, height);
+    subImage->blitMatchingFormat(*this, -x, -y);
+    return subImage;
+}
+
 static bool clip_line(int& x1, int& y1, int& x2, int& y2, int width, int height) {
     const int left = 0;
     const int right = width;

@@ -33,6 +33,8 @@ public:
     void extrude(int x, int y, int w, int h);
     void fixAlphaColor();
 
+    std::unique_ptr<ImageData> cropped(int x, int y, int width, int height) const;
+
     ubyte* getData() const {
         return data.get();
     }
