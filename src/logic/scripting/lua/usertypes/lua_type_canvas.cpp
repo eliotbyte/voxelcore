@@ -19,7 +19,7 @@ LuaCanvas::LuaCanvas(
       region(std::move(region)) {
 }
 
-void LuaCanvas::update() {
+void LuaCanvas::update(int extrusion) {
     if (!hasTexture()) {
         return;
     }
@@ -39,7 +39,24 @@ void LuaCanvas::update() {
         w = std::min<uint>(w, imgWidth);
         h = std::min<uint>(h, imgHeight);
 
-        texture->reloadPartial(*data, x, y, w, h);
+        if (extrusion > 0) {
+            auto extruded = std::make_unique<ImageData>(
+                data->getFormat(),
+                w + extrusion * 2,
+                h + extrusion * 2
+            );
+            extruded->blit(*data, extrusion, extrusion);
+            extruded->extrude(0, 0, w + extrusion * 2, h + extrusion * 2);
+            texture->reloadPartial(
+                *extruded,
+                x - extrusion,
+                y - extrusion,
+                w + extrusion * 2,
+                h + extrusion * 2
+            );
+        } else {
+            texture->reloadPartial(*data, x, y, w, h);
+        }
     }
 }
 

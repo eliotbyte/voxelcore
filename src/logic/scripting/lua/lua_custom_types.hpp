@@ -6,6 +6,7 @@
 #include <random>
 
 #include "lua_commons.hpp"
+#include "constants.hpp"
 #include "maths/UVRegion.hpp"
 
 struct fnl_state;
@@ -108,7 +109,7 @@ namespace lua {
             return texture;
         }
 
-        void update();
+        void update(int extrusion = ATLAS_EXTRUSION);
 
         void createTexture();
 
