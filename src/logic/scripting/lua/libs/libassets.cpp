@@ -67,17 +67,27 @@ static int l_parse_model(lua::State* L) {
 }
 
 static int l_to_canvas(lua::State* L) {
+    auto& assets = *engine->getAssets();
+
     auto alias = lua::require_lstring(L, 1);
     size_t sep = alias.rfind(':');
     if (sep == std::string::npos) {
+        auto texture = assets.getShared<Texture>(std::string(alias));
+        if (texture != nullptr) {
+            auto image = texture->readData();
+            return lua::newuserdata<lua::LuaCanvas>(
+                L, texture, std::move(image)
+            );
+        }
         return 0;
     }
     auto atlasName = alias.substr(0, sep);
-    auto& assets = *engine->getAssets();
+    
     if (auto atlas = assets.get<Atlas>(std::string(atlasName))) {
         auto textureName = std::string(alias.substr(sep + 1));
         auto image = atlas->shareImageData();
         auto texture = atlas->shareTexture();
+
         if (auto region = atlas->getIf(textureName)) {
             UVRegion uvRegion = *region;
             int atlasWidth = static_cast<int>(image->getWidth());
