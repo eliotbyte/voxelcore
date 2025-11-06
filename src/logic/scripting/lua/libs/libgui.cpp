@@ -58,7 +58,7 @@ DocumentNode get_document_node(lua::State* L, int idx) {
 static int l_menu_back(lua::State* L) {
     auto node = get_document_node(L);
     if (auto menu = dynamic_cast<Menu*>(node.node.get())) {
-        menu->back();
+        return lua::pushboolean(L, menu->back());
     }
     return 0;
 }
