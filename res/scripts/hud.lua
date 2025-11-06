@@ -55,8 +55,6 @@ local function update_hand()
     skeleton.set_model("hand", bone, item.model_name(itemid))
 end
 
-local stream
-
 function on_hud_open()
     input.add_callback("player.pick", function ()
         if hud.is_paused() or hud.is_inventory_open() then
@@ -118,40 +116,12 @@ function on_hud_open()
     configure_SSAO()
 
     hud.default_hand_controller = update_hand
-
-    debug.print(audio.get_input_devices_names())
-
-    stream = audio.PCMStream(44100, 1, 16)
-    stream:share("test-stream")
-    streamid = audio.play_stream_2d("test-stream", 2.0, 1.0, "ui")
-
-
-    s = audio.PCMStream(44100, 1, 16)
-    local buffer = Bytearray(44100 * 4)
-    local view = U16view(buffer)
-    for i=1, view.size do
-        view[i] = 16000 + math.sin(i / 200.0 * (1 + i * 0.0001)) * 2000
-    end
-    s:feed(buffer)
-    s:create_sound("test-sound")
-    audio.play_sound_2d("test-sound", 2.0, 1.0, "ui")
 end
-
-audio.input.request_open(function(token)
-    input_access_token = token
-end)
 
 function on_hud_render()
     if hud.hand_controller then
         hud.hand_controller()
     else
         update_hand()
-    end
-
-    if input_access_token then
-        local bytes = audio.input.fetch_input(input_access_token)
-        if bytes then
-            stream:feed(bytes)
-        end
     end
 end
