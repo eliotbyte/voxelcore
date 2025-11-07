@@ -389,7 +389,7 @@ static int l_audio_count_streams(lua::State* L) {
     return lua::pushinteger(L, audio::count_streams());
 }
 
-/// @brief audio.fetch_input(size) -> Bytearray
+/// @brief audio.input.fetch(size) -> Bytearray
 static int l_audio_fetch_input(lua::State* L) {
     auto device = audio::get_input_device();
     if (device == nullptr) {

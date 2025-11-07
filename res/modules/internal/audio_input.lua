@@ -24,7 +24,7 @@ function audio.input.get_max_amplitude()
     return max_amplitude / MAX_AMPLITUDE
 end
 
-function audio.input.fetch_input(token, size)
+function audio.input.fetch(token, size)
     size = size or MAX_FETCH
     if audio_input_tokens_store[token] then
         if #total_fetch >= size then

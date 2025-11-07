@@ -33,7 +33,7 @@ function on_open()
         document.root:add("<container id='tm' />")
         local prev_amplitude = 0.0
         document.tm:setInterval(16, function()
-            audio.input.fetch_input(token)
+            audio.input.fetch(token)
             local amplitude = audio.input.get_max_amplitude()
             if amplitude > 0.0 then
                 amplitude = math.sqrt(amplitude)
