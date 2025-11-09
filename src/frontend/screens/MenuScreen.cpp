@@ -26,7 +26,7 @@ MenuScreen::MenuScreen(Engine& engine)
 MenuScreen::~MenuScreen() = default;
 
 void MenuScreen::onOpen() {
-    engine.getContentControl().resetContent();
+    engine.getContentControl().resetContent({});
     
     auto menu = engine.getGUI().getMenu();
     menu->reset();

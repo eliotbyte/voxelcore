@@ -394,6 +394,7 @@ void Engine::setScreen(std::shared_ptr<Screen> screen) {
     }
     if (project->clientScript && this->screen) {
         project->clientScript->onScreenChange(this->screen->getName(), true);
+        window->setShouldRefresh();
     }
 }
 

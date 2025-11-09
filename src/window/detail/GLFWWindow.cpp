@@ -382,11 +382,11 @@ public:
     }
 
     void setShouldRefresh() override {
-        shouldRefresh = true;
+        shouldRefresh = 2;
     }
 
     bool checkShouldRefresh() override {
-        if (shouldRefresh) {
+        if ((--shouldRefresh) == 0) {
             shouldRefresh = false;
             return true;
         }
@@ -573,7 +573,7 @@ private:
     double prevSwap = 0.0;
     int posX = 0;
     int posY = 0;
-    bool shouldRefresh = true;
+    int shouldRefresh = 1;
 };
 static_assert(!std::is_abstract<GLFWWindow>());
 

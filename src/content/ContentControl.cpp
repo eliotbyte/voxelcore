@@ -49,10 +49,10 @@ std::vector<std::string>& ContentControl::getBasePacks() {
     return basePacks;
 }
 
-void ContentControl::resetContent() {
+void ContentControl::resetContent(const std::vector<std::string>& nonReset) {
     paths.setCurrentWorldFolder("");
 
-    scripting::cleanup();
+    scripting::cleanup(nonReset);
     std::vector<PathsRoot> resRoots;
     {
         auto pack = ContentPack::createCore();
@@ -79,8 +79,6 @@ void ContentControl::loadContent(const std::vector<std::string>& names) {
 }
 
 void ContentControl::loadContent() {
-    scripting::cleanup();
-
     std::vector<std::string> names;
     for (auto& pack : contentPacks) {
         names.push_back(pack.id);
