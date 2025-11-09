@@ -1,0 +1,24 @@
+#pragma once
+
+#include <memory>
+
+class Window;
+class Input;
+class Engine;
+
+class WindowControl {
+public:
+    struct Result {
+        std::unique_ptr<Window> window;
+        std::unique_ptr<Input> input;
+    };
+    WindowControl(Engine& engine);
+
+    Result initialize();
+
+    void nextFrame();
+
+    void saveScreenshot();
+private:
+    Engine& engine;
+};

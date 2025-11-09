@@ -63,7 +63,7 @@ public:
 
     void setCurrentWorldFolder(io::path folder);
     io::path getCurrentWorldFolder();
-    io::path getNewScreenshotFile(const std::string& ext);
+    io::path getNewScreenshotFile(const std::string& ext) const;
 
     std::string mount(const io::path& file);
     void unmount(const std::string& name);

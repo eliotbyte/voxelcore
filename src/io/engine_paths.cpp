@@ -67,7 +67,7 @@ const std::filesystem::path& EnginePaths::getResourcesFolder() const {
     return resourcesFolder;
 }
 
-io::path EnginePaths::getNewScreenshotFile(const std::string& ext) {
+io::path EnginePaths::getNewScreenshotFile(const std::string& ext) const {
     auto folder = SCREENSHOTS_FOLDER;
     if (!io::is_directory(folder)) {
         io::create_directories(folder);

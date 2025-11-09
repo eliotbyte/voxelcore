@@ -14,6 +14,7 @@
 #include <string>
 
 class Window;
+class WindowControl;
 class Assets;
 class Level;
 class Screen;
@@ -75,6 +76,7 @@ class Engine : public util::ObjectsKeeper {
     std::unique_ptr<gui::GUI> gui;
     std::unique_ptr<devtools::Editor> editor;
     std::unique_ptr<devtools::DebuggingServer> debuggingServer;
+    std::unique_ptr<WindowControl> windowControl;
     PostRunnables postRunnables;
     Time time;
     OnWorldOpen levelConsumer;
@@ -143,8 +145,6 @@ public:
     void postRunnable(const runnable& callback) {
         postRunnables.postRunnable(callback);
     }
-
-    void saveScreenshot();
 
     EngineController* getController();
 

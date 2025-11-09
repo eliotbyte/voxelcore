@@ -8,8 +8,6 @@
 #include "assets/AssetsLoader.hpp"
 #include "audio/audio.hpp"
 #include "coders/GLSLExtension.hpp"
-#include "coders/imageio.hpp"
-#include "coders/json.hpp"
 #include "coders/toml.hpp"
 #include "coders/commons.hpp"
 #include "devtools/Editor.hpp"
@@ -23,23 +21,21 @@
 #include "frontend/screens/Screen.hpp"
 #include "graphics/render/ModelsGenerator.hpp"
 #include "graphics/core/DrawContext.hpp"
-#include "graphics/core/ImageData.hpp"
 #include "graphics/core/Shader.hpp"
 #include "graphics/ui/GUI.hpp"
 #include "graphics/ui/elements/Menu.hpp"
-#include "objects/rigging.hpp"
 #include "logic/EngineController.hpp"
 #include "logic/CommandsInterpreter.hpp"
 #include "logic/scripting/scripting.hpp"
 #include "logic/scripting/scripting_hud.hpp"
 #include "network/Network.hpp"
 #include "util/platform.hpp"
-#include "window/Camera.hpp"
 #include "window/input.hpp"
 #include "window/Window.hpp"
 #include "world/Level.hpp"
 #include "Mainloop.hpp"
 #include "ServerMainloop.hpp"
+#include "WindowControl.hpp"
 
 #include <iostream>
 #include <assert.h>
@@ -49,18 +45,6 @@
 #include <utility>
 
 static debug::Logger logger("engine");
-
-static std::unique_ptr<ImageData> load_icon() {
-    try {
-        auto file = "res:textures/misc/icon.png";
-        if (io::exists(file)) {
-            return imageio::read(file);
-        }
-    } catch (const std::exception& err) {
-        logger.error() << "could not load window icon: " << err.what();
-    }
-    return nullptr;
-}
 
 static std::unique_ptr<scripting::IClientProjectScript> load_project_client_script() {
     io::path scriptFile = "project:project_client.lua";
@@ -119,29 +103,9 @@ void Engine::onContentLoad() {
 }
 
 void Engine::initializeClient() {
-    std::string title = project->title;
-    if (title.empty()) {
-        title = "VoxelCore v" +
-                        std::to_string(ENGINE_VERSION_MAJOR) + "." +
-                        std::to_string(ENGINE_VERSION_MINOR);
-    }
-    if (ENGINE_DEBUG_BUILD) {
-        title += " [debug]";
-    }
-    if (debuggingServer) {
-        title = "[debugging] " + title;
-    }
-    auto [window, input] = Window::initialize(&settings.display, title);
-    if (!window || !input){
-        throw initialize_error("could not initialize window");
-    }
-    window->setFramerate(settings.display.framerate.get());
+    windowControl = std::make_unique<WindowControl>(*this);
+    auto [window, input] = windowControl->initialize();
 
-    time.set(window->time());
-    if (auto icon = load_icon()) {
-        icon->flipY();
-        window->setIcon(icon.get());
-    }
     this->window = std::move(window);
     this->input = std::move(input);
 
@@ -270,7 +234,7 @@ void Engine::loadControls() {
 
 void Engine::updateHotkeys() {
     if (input->jpressed(Keycode::F2)) {
-        saveScreenshot();
+        windowControl->saveScreenshot();
     }
     if (input->pressed(Keycode::LEFT_CONTROL) && input->pressed(Keycode::F3) &&
         input->jpressed(Keycode::U)) {
@@ -283,14 +247,6 @@ void Engine::updateHotkeys() {
             settings.display.windowMode.set(static_cast<int>(WindowMode::WINDOWED));
         }
     }
-}
-
-void Engine::saveScreenshot() {
-    auto image = window->takeScreenshot();
-    image->flipY();
-    io::path filename = paths.getNewScreenshotFile("png");
-    imageio::write(filename.string(), image.get());
-    logger.info() << "saved screenshot as " << filename.string();
 }
 
 void Engine::run() {
@@ -331,13 +287,7 @@ void Engine::updateFrontend() {
 }
 
 void Engine::nextFrame() {
-    window->setFramerate(
-        window->isIconified() && settings.display.limitFpsIconified.get()
-            ? 20
-            : settings.display.framerate.get()
-    );
-    window->swapBuffers();
-    input->pollEvents();
+    windowControl->nextFrame();
 }
 
 void Engine::startPauseLoop() {
@@ -437,7 +387,8 @@ void Engine::loadAssets() {
 
     // no need
     // correct log messages order is more useful
-    bool threading = false; // look at two upper lines
+    // todo: before setting to true, check if GLSLExtension thread safe
+    bool threading = false; // look at three upper lines
     if (threading) {
         auto task = loader.startTask([=](){});
         task->waitForEnd();
