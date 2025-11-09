@@ -51,6 +51,7 @@ SettingsHandler::SettingsHandler(EngineSettings& settings) {
     builder.add("framerate", &settings.display.framerate);
     builder.add("limit-fps-iconified", &settings.display.limitFpsIconified);
     builder.add("window-mode", &settings.display.windowMode);
+    builder.add("adaptive-menu-fps", &settings.display.adaptiveFpsInMenu);
 
     builder.section("camera");
     builder.add("sensitivity", &settings.camera.sensitivity);

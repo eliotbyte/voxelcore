@@ -31,6 +31,8 @@ struct DisplaySettings {
     IntegerSetting framerate {-1, -1, 120};
     /// @brief Limit framerate when window is iconified
     FlagSetting limitFpsIconified {false};
+    /// @brief Adaptive framerate in menu (experimental)
+    FlagSetting adaptiveFpsInMenu {false};
 };
 
 struct ChunksSettings {
