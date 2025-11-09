@@ -1,14 +1,14 @@
 #pragma once
 
+#include "io.hpp"
+#include "data/dv.hpp"
+#include "engine/CoreParameters.hpp"
+
 #include <unordered_map>
-#include <stdexcept>
 #include <optional>
 #include <string>
 #include <vector>
 #include <tuple>
-
-#include "io.hpp"
-#include "data/dv.hpp"
 
 struct PathsRoot {
     std::string name;
@@ -46,17 +46,10 @@ class EnginePaths {
 public:
     ResPaths resPaths;
 
-    void prepare();
+    void prepare(CoreParameters& params);
 
-    void setUserFilesFolder(std::filesystem::path folder);
     const std::filesystem::path& getUserFilesFolder() const;
-
-    void setResourcesFolder(std::filesystem::path folder);
     const std::filesystem::path& getResourcesFolder() const;
-
-    void setScriptFolder(std::filesystem::path folder);
-
-    void setProjectFolder(std::filesystem::path folder);
 
     io::path getWorldFolderByName(const std::string& name);
     io::path getWorldsFolder() const;

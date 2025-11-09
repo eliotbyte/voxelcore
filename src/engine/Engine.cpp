@@ -16,6 +16,7 @@
 #include "content/ContentControl.hpp"
 #include "core_defs.hpp"
 #include "io/io.hpp"
+#include "io/settings_io.hpp"
 #include "frontend/locale.hpp"
 #include "frontend/menu.hpp"
 #include "frontend/screens/Screen.hpp"
@@ -129,13 +130,7 @@ void Engine::initialize(CoreParameters coreParameters) {
     if (params.projectFolder.empty()) {
         params.projectFolder = params.resFolder;
     }
-    paths.setResourcesFolder(params.resFolder);
-    paths.setUserFilesFolder(params.userFolder);
-    paths.setProjectFolder(params.projectFolder);
-    if (!params.scriptFile.empty()) {
-        paths.setScriptFolder(params.scriptFile.parent_path());
-    }
-    paths.prepare();
+    paths.prepare(params);
     loadProject();
 
     editor = std::make_unique<devtools::Editor>(*this);

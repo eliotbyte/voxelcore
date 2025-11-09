@@ -1,26 +1,26 @@
 #pragma once
 
-#include "delegates.hpp"
-#include "typedefs.hpp"
-#include "settings.hpp"
-
-#include "io/engine_paths.hpp"
-#include "io/settings_io.hpp"
-#include "util/ObjectsKeeper.hpp"
+#include "CoreParameters.hpp"
 #include "PostRunnables.hpp"
 #include "Time.hpp"
+#include "delegates.hpp"
+#include "io/engine_paths.hpp"
+#include "settings.hpp"
+#include "typedefs.hpp"
+#include "util/ObjectsKeeper.hpp"
 
 #include <memory>
 #include <string>
 
-class Window;
-class WindowControl;
 class Assets;
-class Level;
-class Screen;
 class ContentControl;
 class EngineController;
 class Input;
+class Level;
+class Screen;
+class SettingsHandler;
+class Window;
+class WindowControl;
 struct Project;
 
 namespace gui {
@@ -43,17 +43,6 @@ namespace devtools {
 class initialize_error : public std::runtime_error {
 public:
     initialize_error(const std::string& message) : std::runtime_error(message) {}
-};
-
-struct CoreParameters {
-    bool headless = false;
-    bool testMode = false;
-    std::filesystem::path resFolder = "res";
-    std::filesystem::path userFolder = ".";
-    std::filesystem::path scriptFile;
-    std::filesystem::path projectFolder;
-    std::string debugServerString;
-    int tps = 20;
 };
 
 using OnWorldOpen = std::function<void(std::unique_ptr<Level>, int64_t)>;
