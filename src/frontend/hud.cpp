@@ -756,3 +756,13 @@ void Hud::setAllowPause(bool flag) {
     }
     allowPause = flag;
 }
+
+bool Hud::isOpen(const std::string& layoutid) const {
+    for (const auto& element : elements) {
+        auto doc = element.getDocument();
+        if (doc && doc->getId() == layoutid) {
+            return true;
+        }
+    }
+    return false;
+}
