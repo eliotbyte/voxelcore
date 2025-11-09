@@ -105,6 +105,7 @@ public:
 
     void postUpdate();
 
+    void applicationTick();
     void updateFrontend();
     void renderFrame();
     void nextFrame();

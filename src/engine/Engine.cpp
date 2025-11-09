@@ -62,13 +62,24 @@ static std::unique_ptr<ImageData> load_icon() {
     return nullptr;
 }
 
-static std::unique_ptr<scripting::IClientProjectScript> load_client_project_script() {
+static std::unique_ptr<scripting::IClientProjectScript> load_project_client_script() {
     io::path scriptFile = "project:project_client.lua";
     if (io::exists(scriptFile)) {
-        logger.info() << "starting project script";
+        logger.info() << "starting project client script";
         return scripting::load_client_project_script(scriptFile);
     } else {
-        logger.warning() << "project script does not exists";
+        logger.warning() << "project client script does not exists";
+    }
+    return nullptr;
+}
+
+static std::unique_ptr<Process> load_project_start_script() {
+    io::path scriptFile = "project:start.lua";
+    if (io::exists(scriptFile)) {
+        logger.info() << "starting project start script";
+        return scripting::start_app_script(scriptFile);
+    } else {
+        logger.warning() << "project start script does not exists";
     }
     return nullptr;
 }
@@ -226,7 +237,10 @@ void Engine::initialize(CoreParameters coreParameters) {
         langs::setup(lang, paths.resPaths.collectRoots());
     }, true));
 
-    project->clientScript = load_client_project_script();
+    project->setupCoroutine = load_project_start_script();
+    if (!params.headless) {
+        project->clientScript = load_project_client_script();
+    }
 }
 
 void Engine::loadSettings() {
@@ -299,6 +313,12 @@ void Engine::postUpdate() {
 
 void Engine::detachDebugger() {
     debuggingServer.reset();
+}
+
+void Engine::applicationTick() {
+    if (project->setupCoroutine && project->setupCoroutine->isActive()) {
+        project->setupCoroutine->update();
+    }
 }
 
 void Engine::updateFrontend() {

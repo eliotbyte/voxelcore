@@ -12,9 +12,11 @@
 #include "window/Camera.hpp"
 #include "engine/Engine.hpp"
 
-MenuScreen::MenuScreen(Engine& engine) : Screen(engine) {
-    uicamera =
-        std::make_unique<Camera>(glm::vec3(), engine.getWindow().getSize().y);
+MenuScreen::MenuScreen(Engine& engine)
+    : Screen(engine),
+      uicamera(
+          std::make_unique<Camera>(glm::vec3(), engine.getWindow().getSize().y)
+      ) {
     uicamera->perspective = false;
     uicamera->near = -1.0f;
     uicamera->far = 1.0f;

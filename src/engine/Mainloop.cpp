@@ -38,6 +38,7 @@ void Mainloop::run() {
     logger.info() << "main loop started";
     while (!window.isShouldClose()){
         time.update(window.time());
+        engine.applicationTick();
         engine.updateFrontend();
 
         if (!window.isIconified()) {
