@@ -99,7 +99,7 @@ public:
     void applicationTick();
     void updateFrontend();
     void renderFrame();
-    void nextFrame();
+    void nextFrame(bool waitForRefresh);
     void startPauseLoop();
     
     /// @brief Set screen (scene).

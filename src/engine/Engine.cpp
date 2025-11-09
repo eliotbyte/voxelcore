@@ -255,8 +255,8 @@ void Engine::updateFrontend() {
     gui->postAct();
 }
 
-void Engine::nextFrame() {
-    windowControl->nextFrame();
+void Engine::nextFrame(bool waitForRefresh) {
+    windowControl->nextFrame(waitForRefresh);
 }
 
 void Engine::startPauseLoop() {
@@ -275,7 +275,7 @@ void Engine::startPauseLoop() {
         if (isHeadless()) {
             platform::sleep(1.0 / params.tps * 1000);
         } else {
-            nextFrame();
+            nextFrame(false);
         }
     }
     if (initialCursorLocked) {

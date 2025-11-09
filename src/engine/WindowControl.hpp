@@ -16,7 +16,7 @@ public:
 
     Result initialize();
 
-    void nextFrame();
+    void nextFrame(bool waitForRefresh);
 
     void saveScreenshot();
 
