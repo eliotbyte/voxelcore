@@ -30,6 +30,7 @@ ContentControl::ContentControl(
     manager->setSources({
         "world:content",
         "user:content",
+        "project:content",
         "res:content",
     });
 }
