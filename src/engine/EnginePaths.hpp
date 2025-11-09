@@ -1,8 +1,8 @@
 #pragma once
 
-#include "io.hpp"
+#include "io/io.hpp"
 #include "data/dv.hpp"
-#include "engine/CoreParameters.hpp"
+#include "CoreParameters.hpp"
 
 #include <unordered_map>
 #include <optional>
@@ -46,16 +46,12 @@ class EnginePaths {
 public:
     ResPaths resPaths;
 
-    void prepare(CoreParameters& params);
-
-    const std::filesystem::path& getUserFilesFolder() const;
-    const std::filesystem::path& getResourcesFolder() const;
+    EnginePaths(CoreParameters& params);
 
     io::path getWorldFolderByName(const std::string& name);
     io::path getWorldsFolder() const;
 
     void setCurrentWorldFolder(io::path folder);
-    io::path getCurrentWorldFolder();
     io::path getNewScreenshotFile(const std::string& ext) const;
 
     std::string mount(const io::path& file);
@@ -73,9 +69,9 @@ public:
     static inline io::path CONTROLS_FILE = "user:controls.toml";
     static inline io::path SETTINGS_FILE = "user:settings.toml";
 private:
-    std::filesystem::path userFilesFolder {"."};
-    std::filesystem::path resourcesFolder {"res"};
-    std::filesystem::path projectFolder = resourcesFolder;
+    std::filesystem::path resourcesFolder;
+    std::filesystem::path userFilesFolder;
+    std::filesystem::path projectFolder;
     io::path currentWorldFolder;
     std::optional<std::filesystem::path> scriptFolder;
     std::vector<PathsRoot> entryPoints;

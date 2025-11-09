@@ -1,6 +1,7 @@
 #include "WindowControl.hpp"
 
 #include "Engine.hpp"
+#include "engine/EnginePaths.hpp"
 #include "devtools/Project.hpp"
 #include "coders/imageio.hpp"
 #include "window/Window.hpp"

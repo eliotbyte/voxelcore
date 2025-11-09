@@ -1,7 +1,7 @@
 #include "ContentControl.hpp"
 
 #include "io/io.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "Content.hpp"
 #include "ContentPack.hpp"
 #include "ContentBuilder.hpp"

@@ -37,6 +37,7 @@
 #include "Mainloop.hpp"
 #include "ServerMainloop.hpp"
 #include "WindowControl.hpp"
+#include "EnginePaths.hpp"
 
 #include <iostream>
 #include <assert.h>
@@ -61,7 +62,7 @@ Engine& Engine::getInstance() {
 
 void Engine::onContentLoad() {
     editor->loadTools();
-    langs::setup(langs::get_current(), paths.resPaths.collectRoots());
+    langs::setup(langs::get_current(), paths->resPaths.collectRoots());
     
     if (isHeadless()) {
         return;
@@ -130,7 +131,7 @@ void Engine::initialize(CoreParameters coreParameters) {
     if (params.projectFolder.empty()) {
         params.projectFolder = params.resFolder;
     }
-    paths.prepare(params);
+    paths = std::make_unique<EnginePaths>(params);
     loadProject();
 
     editor = std::make_unique<devtools::Editor>(*this);
@@ -161,7 +162,7 @@ void Engine::initialize(CoreParameters coreParameters) {
             langs::locale_by_envlocale(platform::detect_locale())
         );
     }
-    content = std::make_unique<ContentControl>(*project, paths, *input, [this]() {
+    content = std::make_unique<ContentControl>(*project, *paths, *input, [this]() {
         onContentLoad();
     });
     scripting::initialize(this);
@@ -170,7 +171,7 @@ void Engine::initialize(CoreParameters coreParameters) {
         gui->setPageLoader(scripting::create_page_loader());
     }
     keepAlive(settings.ui.language.observe([this](auto lang) {
-        langs::setup(lang, paths.resPaths.collectRoots());
+        langs::setup(lang, paths->resPaths.collectRoots());
     }, true));
 
     project->loadProjectStartScript();
@@ -345,12 +346,12 @@ void Engine::setLevelConsumer(OnWorldOpen levelConsumer) {
 
 void Engine::loadAssets() {
     logger.info() << "loading assets";
-    Shader::preprocessor->setPaths(&paths.resPaths);
+    Shader::preprocessor->setPaths(&paths->resPaths);
 
     auto content = this->content->get();
 
     auto new_assets = std::make_unique<Assets>();
-    AssetsLoader loader(*this, *new_assets, paths.resPaths);
+    AssetsLoader loader(*this, *new_assets, paths->resPaths);
     AssetsLoader::addDefaults(loader, content);
 
     // no need
@@ -426,11 +427,11 @@ Assets* Engine::getAssets() {
 }
 
 EnginePaths& Engine::getPaths() {
-    return paths;
+    return *paths;
 }
 
 ResPaths& Engine::getResPaths() {
-    return paths.resPaths;
+    return paths->resPaths;
 }
 
 std::shared_ptr<Screen> Engine::getScreen() {

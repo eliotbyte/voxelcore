@@ -8,7 +8,7 @@
 #include "content/Content.hpp"
 #include "content/ContentControl.hpp"
 #include "engine/Engine.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "io/io.hpp"
 #include "io/settings_io.hpp"
 #include "frontend/menu.hpp"

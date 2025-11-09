@@ -4,7 +4,6 @@
 #include "PostRunnables.hpp"
 #include "Time.hpp"
 #include "delegates.hpp"
-#include "io/engine_paths.hpp"
 #include "settings.hpp"
 #include "typedefs.hpp"
 #include "util/ObjectsKeeper.hpp"
@@ -15,8 +14,10 @@
 class Assets;
 class ContentControl;
 class EngineController;
+class EnginePaths;
 class Input;
 class Level;
+class ResPaths;
 class Screen;
 class SettingsHandler;
 class Window;
@@ -50,8 +51,7 @@ using OnWorldOpen = std::function<void(std::unique_ptr<Level>, int64_t)>;
 class Engine : public util::ObjectsKeeper {
     CoreParameters params;
     EngineSettings settings;
-    EnginePaths paths;
-
+    std::unique_ptr<EnginePaths> paths;
     std::unique_ptr<Project> project;
     std::unique_ptr<SettingsHandler> settingsHandler;
     std::unique_ptr<Assets> assets;

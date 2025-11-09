@@ -1,4 +1,4 @@
-#include "engine_paths.hpp"
+#include "EnginePaths.hpp"
 
 #include "debug/Logger.hpp"
 #include "io/devices/StdfsDevice.hpp"
@@ -39,10 +39,10 @@ static std::string generate_random_base64() {
     return util::base64_urlsafe_encode(bytes, n);
 }
 
-void EnginePaths::prepare(CoreParameters& params) {
-    resourcesFolder = params.resFolder;
-    userFilesFolder = params.userFolder;
-    projectFolder = params.projectFolder;
+EnginePaths::EnginePaths(CoreParameters& params)
+    : resourcesFolder(params.resFolder),
+      userFilesFolder(params.userFolder),
+      projectFolder(params.projectFolder) {
     if (!params.scriptFile.empty()) {
         scriptFolder = params.scriptFile.parent_path();
         io::set_device("script", std::make_shared<io::StdfsDevice>(*scriptFolder));
@@ -71,14 +71,6 @@ void EnginePaths::prepare(CoreParameters& params) {
     io::create_subdevice("config", "user", "config");
 }
 
-const fs::path& EnginePaths::getUserFilesFolder() const {
-    return userFilesFolder;
-}
-
-const fs::path& EnginePaths::getResourcesFolder() const {
-    return resourcesFolder;
-}
-
 io::path EnginePaths::getNewScreenshotFile(const std::string& ext) const {
     auto folder = SCREENSHOTS_FOLDER;
     if (!io::is_directory(folder)) {
@@ -105,10 +97,6 @@ io::path EnginePaths::getNewScreenshotFile(const std::string& ext) const {
 
 io::path EnginePaths::getWorldsFolder() const {
     return WORLDS_FOLDER;
-}
-
-io::path EnginePaths::getCurrentWorldFolder() {
-    return currentWorldFolder;
 }
 
 io::path EnginePaths::getWorldFolderByName(const std::string& name) {
