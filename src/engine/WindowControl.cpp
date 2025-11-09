@@ -83,15 +83,11 @@ void WindowControl::nextFrame(bool waitForRefresh) {
     const auto& settings = engine.getSettings();
     auto& window = engine.getWindow();
     auto& input = engine.getInput();
-    if (waitForRefresh) {
-        window.setFramerate(Window::FPS_UNLIMITED);
-    } else {
-        window.setFramerate(
-            window.isIconified() && settings.display.limitFpsIconified.get()
-                ? 20
-                : settings.display.framerate.get()
-        );
-    }
+    window.setFramerate(
+        window.isIconified() && settings.display.limitFpsIconified.get()
+            ? 20
+            : settings.display.framerate.get()
+    );
     window.swapBuffers();
     input.pollEvents(waitForRefresh && !window.checkShouldRefresh());
 }
