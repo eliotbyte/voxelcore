@@ -79,6 +79,10 @@ void Container::act(float delta) {
             node->act(delta);
         }
     }
+    if (!intervalEvents.empty()) {
+        // TODO: make it interval-based
+        gui.getWindow().setShouldRefresh();
+    }
     for (IntervalEvent& event : intervalEvents) {
         event.timer += delta;
         if (event.timer > event.interval) {
@@ -93,8 +97,6 @@ void Container::act(float delta) {
     intervalEvents.erase(std::remove_if(
         intervalEvents.begin(), intervalEvents.end(),
         [&gui](const IntervalEvent& event) {
-            // TODO: make it interval-based
-            gui.getWindow().setShouldRefresh();
             return event.repeat == 0;
         }
     ), intervalEvents.end());
