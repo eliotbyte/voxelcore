@@ -19,6 +19,8 @@ public:
     void nextFrame();
 
     void saveScreenshot();
+
+    void toggleFullscreen();
 private:
     Engine& engine;
 };

@@ -46,28 +46,6 @@
 
 static debug::Logger logger("engine");
 
-static std::unique_ptr<scripting::IClientProjectScript> load_project_client_script() {
-    io::path scriptFile = "project:project_client.lua";
-    if (io::exists(scriptFile)) {
-        logger.info() << "starting project client script";
-        return scripting::load_client_project_script(scriptFile);
-    } else {
-        logger.warning() << "project client script does not exists";
-    }
-    return nullptr;
-}
-
-static std::unique_ptr<Process> load_project_start_script() {
-    io::path scriptFile = "project:start.lua";
-    if (io::exists(scriptFile)) {
-        logger.info() << "starting project start script";
-        return scripting::start_app_script(scriptFile);
-    } else {
-        logger.warning() << "project start script does not exists";
-    }
-    return nullptr;
-}
-
 Engine::Engine() = default;
 Engine::~Engine() = default;
 
@@ -146,7 +124,7 @@ void Engine::initialize(CoreParameters coreParameters) {
 
     logger.info() << "engine version: " << ENGINE_VERSION_STRING;
     if (params.headless) {
-        logger.info() << "headless mode is enabled";
+        logger.info() << "engine runs in headless mode";
     }
     if (params.projectFolder.empty()) {
         params.projectFolder = params.resFolder;
@@ -154,6 +132,9 @@ void Engine::initialize(CoreParameters coreParameters) {
     paths.setResourcesFolder(params.resFolder);
     paths.setUserFilesFolder(params.userFolder);
     paths.setProjectFolder(params.projectFolder);
+    if (!params.scriptFile.empty()) {
+        paths.setScriptFolder(params.scriptFile.parent_path());
+    }
     paths.prepare();
     loadProject();
 
@@ -171,10 +152,6 @@ void Engine::initialize(CoreParameters coreParameters) {
                 "debugging server error: " + std::string(err.what())
             );
         }
-    }
-
-    if (!params.scriptFile.empty()) {
-        paths.setScriptFolder(params.scriptFile.parent_path());
     }
     loadSettings();
 
@@ -201,9 +178,9 @@ void Engine::initialize(CoreParameters coreParameters) {
         langs::setup(lang, paths.resPaths.collectRoots());
     }, true));
 
-    project->setupCoroutine = load_project_start_script();
+    project->loadProjectStartScript();
     if (!params.headless) {
-        project->clientScript = load_project_client_script();
+        project->loadProjectClientScript();
     }
 }
 
@@ -241,11 +218,7 @@ void Engine::updateHotkeys() {
         gui->toggleDebug();
     }
     if (input->jpressed(Keycode::F11)) {
-        if (settings.display.windowMode.get() != static_cast<int>(WindowMode::FULLSCREEN)) {
-            settings.display.windowMode.set(static_cast<int>(WindowMode::FULLSCREEN));
-        } else {
-            settings.display.windowMode.set(static_cast<int>(WindowMode::WINDOWED));
-        }
+        windowControl->toggleFullscreen();
     }
 }
 

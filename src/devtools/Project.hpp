@@ -22,4 +22,7 @@ struct Project : Serializable {
 
     dv::value serialize() const override;
     void deserialize(const dv::value& src) override;
+
+    void loadProjectClientScript();
+    void loadProjectStartScript();
 };

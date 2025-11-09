@@ -67,6 +67,16 @@ void WindowControl::saveScreenshot() {
     logger.info() << "saved screenshot as " << filename.string();
 }
 
+void WindowControl::toggleFullscreen() {
+    auto& settings = engine.getSettings();
+    auto& windowMode = settings.display.windowMode;
+    if (windowMode.get() != static_cast<int>(WindowMode::FULLSCREEN)) {
+        windowMode.set(static_cast<int>(WindowMode::FULLSCREEN));
+    } else {
+        windowMode.set(static_cast<int>(WindowMode::WINDOWED));
+    }
+}
+
 void WindowControl::nextFrame() {
     const auto& settings = engine.getSettings();
     auto& window = engine.getWindow();
