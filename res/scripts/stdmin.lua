@@ -771,6 +771,7 @@ function __scripts_cleanup(non_reset_packs)
             __cached_scripts[k] = nil
             package.loaded[k] = nil
         end
+        __vc__pack_envs[packname] = nil
         ::continue::
     end
 end

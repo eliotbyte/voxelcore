@@ -173,7 +173,15 @@ std::unique_ptr<Process> scripting::start_app_script(const io::path& script) {
     const ContentPack& pack
 ) {
     auto L = lua::get_main_state();
-    int id = lua::create_environment(L, 0);
+    int id = lua::restore_pack_environment(L, pack.id);
+    if (id != -1) {
+        return std::shared_ptr<int>(new int(id), [=](int* id) { //-V508
+            lua::remove_environment(L, *id);
+            delete id;
+        });
+    }
+    id = lua::create_environment(L, 0);
+
     lua::pushenv(L, id);
     lua::pushvalue(L, -1);
     lua::setfield(L, "PACK_ENV");
@@ -352,9 +360,6 @@ void scripting::cleanup(const std::vector<std::string>& nonReset) {
     auto L = lua::get_main_state();
     lua::requireglobal(L, "pack");
     for (auto& pack : content_control->getAllContentPacks()) {
-        if (std::find(nonReset.begin(), nonReset.end(), pack.id) != nonReset.end()) {
-            continue;
-        }
         lua::requirefield(L, "unload");
         lua::pushstring(L, pack.id);
         lua::call_nothrow(L, 1);
