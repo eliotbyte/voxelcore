@@ -24,6 +24,7 @@
 #include "items/Inventories.hpp"
 #include "util/stringutil.hpp"
 #include "world/Level.hpp"
+#include "../usertypes/lua_type_canvas.hpp"
 
 using namespace gui;
 using namespace scripting;
