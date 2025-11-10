@@ -76,13 +76,14 @@ LevelScreen::LevelScreen(
         engine, *controller, *renderer, assets, *player
     );
 
-    keepAlive(settings.graphics.backlight.observe([=](bool) {
+    auto resetChunks = [=](bool) {
         player->chunks->saveAndClear();
         renderer->clear();
-    }));
-    keepAlive(settings.graphics.denseRender.observe([=](bool) {
-        player->chunks->saveAndClear();
-        renderer->clear();
+    };
+    keepAlive(settings.graphics.backlight.observe(resetChunks));
+    keepAlive(settings.graphics.softLighting.observe(resetChunks));
+    keepAlive(settings.graphics.denseRender.observe([=](bool flag) {
+        resetChunks(flag);
         frontend->getContentGfxCache().refresh();
     }));
     keepAlive(settings.camera.fov.observe([=](double value) {

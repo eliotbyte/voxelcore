@@ -85,6 +85,8 @@ struct GraphicsSettings {
     IntegerSetting shadowsQuality {0, 0, 3};
     /// @brief Dense render distance
     IntegerSetting denseRenderDistance {56, 0, 10'000};
+    /// @brief Soft lighting for blocks
+    FlagSetting softLighting {true};
 };
 
 struct PathfindingSettings {
