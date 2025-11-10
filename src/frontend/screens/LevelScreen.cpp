@@ -6,6 +6,7 @@
 #include "core_defs.hpp"
 #include "debug/Logger.hpp"
 #include "engine/Engine.hpp"
+#include "engine/EnginePaths.hpp"
 #include "assets/Assets.hpp"
 #include "frontend/ContentGfxCache.hpp"
 #include "frontend/LevelFrontend.hpp"

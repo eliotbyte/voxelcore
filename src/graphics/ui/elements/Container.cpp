@@ -2,6 +2,8 @@
 
 #include "graphics/core/DrawContext.hpp"
 #include "graphics/core/Batch2D.hpp"
+#include "window/Window.hpp"
+#include "../GUI.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -77,6 +79,10 @@ void Container::act(float delta) {
             node->act(delta);
         }
     }
+    if (!intervalEvents.empty()) {
+        // TODO: make it interval-based
+        gui.getWindow().setShouldRefresh();
+    }
     for (IntervalEvent& event : intervalEvents) {
         event.timer += delta;
         if (event.timer > event.interval) {
@@ -87,9 +93,10 @@ void Container::act(float delta) {
             }
         }
     }
+    GUI& gui = this->gui;
     intervalEvents.erase(std::remove_if(
         intervalEvents.begin(), intervalEvents.end(),
-        [](const IntervalEvent& event) {
+        [&gui](const IntervalEvent& event) {
             return event.repeat == 0;
         }
     ), intervalEvents.end());

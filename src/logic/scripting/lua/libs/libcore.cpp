@@ -8,7 +8,7 @@
 #include "content/Content.hpp"
 #include "content/ContentControl.hpp"
 #include "engine/Engine.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "io/io.hpp"
 #include "io/settings_io.hpp"
 #include "frontend/menu.hpp"
@@ -43,7 +43,16 @@ static int l_reset_content(lua::State* L) {
     if (level != nullptr) {
         throw std::runtime_error("world must be closed before");
     }
-    content_control->resetContent();
+    std::vector<std::string> nonResetPacks;
+    if (lua::istable(L, 1)) {
+        int len = lua::objlen(L, 1);
+        for (int i = 0; i < len; i++) {
+            lua::rawgeti(L, i + 1, 1);
+            nonResetPacks.emplace_back(lua::require_lstring(L, -1));
+            lua::pop(L);
+        }
+    }
+    content_control->resetContent(std::move(nonResetPacks));
     return 0;
 }
 

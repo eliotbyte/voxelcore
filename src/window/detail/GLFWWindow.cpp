@@ -180,14 +180,18 @@ public:
         : window(window) {
     }
 
-    void pollEvents() override {
+    void pollEvents(bool waitForRefresh) override {
         delta.x = 0.0f;
         delta.y = 0.0f;
         scroll = 0;
         currentFrame++;
         codepoints.clear();
         pressedKeys.clear();
-        glfwPollEvents();
+        if (waitForRefresh) {
+            glfwWaitEvents();
+        } else {
+            glfwPollEvents();
+        }
 
         for (auto& [_, binding] : bindings.getAll()) {
             if (!binding.enabled) {
@@ -377,6 +381,18 @@ public:
         prevSwap = time();
     }
 
+    void setShouldRefresh() override {
+        shouldRefresh = true;
+    }
+
+    bool checkShouldRefresh() override {
+        if (shouldRefresh) {
+            shouldRefresh = false;
+            return true;
+        }
+        return false;
+    }
+
     bool isMaximized() const override {
         return glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
     }
@@ -557,12 +573,14 @@ private:
     double prevSwap = 0.0;
     int posX = 0;
     int posY = 0;
+    bool shouldRefresh = true;
 };
 static_assert(!std::is_abstract<GLFWWindow>());
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int) {
     auto handler = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
     handler->input.onMouseCallback(button, action == GLFW_PRESS);
+    handler->setShouldRefresh();
 }
 
 static void character_callback(GLFWwindow* window, unsigned int codepoint) {
@@ -574,6 +592,8 @@ static void key_callback(
     GLFWwindow* window, int key, int /*scancode*/, int action, int /*mode*/
 ) {
     auto handler = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+    handler->setShouldRefresh();
+
     auto& input = handler->input;
     if (key == GLFW_KEY_UNKNOWN) {
         return;
@@ -599,11 +619,13 @@ static void window_size_callback(GLFWwindow* window, int width, int height) {
 static void scroll_callback(GLFWwindow* window, double, double yoffset) {
     auto handler = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
     handler->input.scroll += yoffset;
+    handler->setShouldRefresh();
 }
 
 static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
     auto handler = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
     handler->input.setCursorPosition(xpos, ypos);
+    handler->setShouldRefresh();
 }
 
 static void iconify_callback(GLFWwindow* window, int iconified) {
@@ -629,6 +651,11 @@ static void create_standard_cursors() {
     }
 }
 
+static void refresh_callback(GLFWwindow* window) {
+    auto handler = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+    handler->setShouldRefresh();
+}
+
 static void setup_callbacks(GLFWwindow* window) {
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -637,6 +664,7 @@ static void setup_callbacks(GLFWwindow* window) {
     glfwSetCharCallback(window, character_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetWindowIconifyCallback(window, iconify_callback);
+    glfwSetWindowRefreshCallback(window, refresh_callback);
 }
 
 std::tuple<

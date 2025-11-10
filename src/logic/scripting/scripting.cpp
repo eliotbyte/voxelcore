@@ -9,7 +9,7 @@
 #include "content/ContentControl.hpp"
 #include "debug/Logger.hpp"
 #include "engine/Engine.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "io/io.hpp"
 #include "frontend/UiDocument.hpp"
 #include "items/Inventory.hpp"
@@ -173,7 +173,15 @@ std::unique_ptr<Process> scripting::start_app_script(const io::path& script) {
     const ContentPack& pack
 ) {
     auto L = lua::get_main_state();
-    int id = lua::create_environment(L, 0);
+    int id = lua::restore_pack_environment(L, pack.id);
+    if (id != -1) {
+        return std::shared_ptr<int>(new int(id), [=](int* id) { //-V508
+            lua::remove_environment(L, *id);
+            delete id;
+        });
+    }
+    id = lua::create_environment(L, 0);
+
     lua::pushenv(L, id);
     lua::pushvalue(L, -1);
     lua::setfield(L, "PACK_ENV");
@@ -348,7 +356,7 @@ void scripting::on_world_quit() {
     scripting::controller = nullptr;
 }
 
-void scripting::cleanup() {
+void scripting::cleanup(const std::vector<std::string>& nonReset) {
     auto L = lua::get_main_state();
     lua::requireglobal(L, "pack");
     for (auto& pack : content_control->getAllContentPacks()) {
@@ -359,7 +367,12 @@ void scripting::cleanup() {
     lua::pop(L);
 
     if (lua::getglobal(L, "__scripts_cleanup")) {
-        lua::call_nothrow(L, 0);
+        lua::createtable(L, nonReset.size(), 0);
+        for (size_t i = 0; i < nonReset.size(); i++) {
+            lua::pushstring(L, nonReset[i]);
+            lua::rawseti(L, i + 1);
+        }
+        lua::call_nothrow(L, 1);
     }
 }
 

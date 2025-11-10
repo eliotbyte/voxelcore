@@ -9,6 +9,7 @@
 #include "content/Content.hpp"
 #include "content/ContentControl.hpp"
 #include "engine/Engine.hpp"
+#include "engine/EnginePaths.hpp"
 #include "../lua_custom_types.hpp"
 
 using namespace scripting;

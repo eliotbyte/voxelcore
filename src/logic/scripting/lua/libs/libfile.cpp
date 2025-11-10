@@ -3,7 +3,7 @@
 
 #include "coders/gzip.hpp"
 #include "engine/Engine.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "io/io.hpp"
 #include "io/devices/ZipFileDevice.hpp"
 #include "util/stringutil.hpp"
