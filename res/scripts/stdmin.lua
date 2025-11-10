@@ -742,24 +742,12 @@ function require(path)
     return __load_script(prefix .. ":modules/" .. file .. ".lua", nil, env)
 end
 
--- TODO: move to string
-local function join(t, sep)
-    local s = ""
-    for i, v in ipairs(t) do
-        s = s..tostring(v)
-        if i < #t then
-            s = s..sep
-        end
-    end
-    return s
-end
-
 function __scripts_cleanup(non_reset_packs)
     debug.log("cleaning scripts cache")
     if #non_reset_packs == 0 then
         debug.log("no non-reset packs")
     else
-        debug.log("non-reset packs: "..join(non_reset_packs, ", "))
+        debug.log("non-reset packs: "..table.concat(non_reset_packs, ", "))
     end
     for k, v in pairs(__cached_scripts) do
         local packname, _ = parse_path(k)
