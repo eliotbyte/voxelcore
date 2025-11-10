@@ -36,6 +36,7 @@ public:
     virtual void setMode(WindowMode mode) = 0;
     virtual WindowMode getMode() const = 0;
 
+    virtual void setTitle(const std::string& title) = 0;
     virtual void setIcon(const ImageData* image) = 0;
 
     virtual void pushScissor(glm::vec4 area) = 0;

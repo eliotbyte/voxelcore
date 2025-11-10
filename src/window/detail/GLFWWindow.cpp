@@ -468,6 +468,10 @@ public:
         return mode;
     }
 
+    void setTitle(const std::string& title) override {
+        glfwSetWindowTitle(window, title.c_str());
+    }
+
     void setIcon(const ImageData* image) override {
         if (image == nullptr) {
             glfwSetWindowIcon(window, 0, nullptr);
