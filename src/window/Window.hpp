@@ -18,6 +18,8 @@ enum class WindowMode {
 
 class Window {
 public:
+    static inline constexpr int FPS_UNLIMITED = 0;
+
     Window(glm::ivec2 size) : size(std::move(size)) {}
 
     virtual ~Window() = default;
@@ -39,6 +41,9 @@ public:
     virtual void pushScissor(glm::vec4 area) = 0;
     virtual void popScissor() = 0;
     virtual void resetScissor() = 0;
+
+    virtual void setShouldRefresh() = 0;
+    virtual bool checkShouldRefresh() = 0;
 
     virtual double time() = 0;
 

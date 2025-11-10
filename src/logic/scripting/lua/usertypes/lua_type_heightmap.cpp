@@ -8,6 +8,7 @@
 #include "graphics/core/ImageData.hpp"
 #include "maths/Heightmap.hpp"
 #include "engine/Engine.hpp"
+#include "engine/EnginePaths.hpp"
 #include "../lua_util.hpp"
 #include "lua_type_heightmap.hpp"
 

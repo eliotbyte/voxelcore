@@ -82,7 +82,7 @@ namespace scripting {
     void on_world_tick(int tps);
     void on_world_save();
     void on_world_quit();
-    void cleanup();
+    void cleanup(const std::vector<std::string>& nonReset);
     void on_blocks_tick(const Block& block, int tps);
     void update_block(const Block& block, const glm::ivec3& pos);
     void random_update_block(const Block& block, const glm::ivec3& pos);

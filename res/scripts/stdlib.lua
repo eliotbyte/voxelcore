@@ -114,7 +114,6 @@ events = require "core:internal/events"
 
 function pack.unload(prefix)
     events.remove_by_prefix(prefix)
-    __vc__pack_envs[prefix] = nil
 end
 
 function __vc_start_app_script(path)
