@@ -188,7 +188,7 @@ public:
         codepoints.clear();
         pressedKeys.clear();
         if (waitForRefresh) {
-            glfwWaitEvents();
+            glfwWaitEventsTimeout(0.5);
         } else {
             glfwPollEvents();
         }
