@@ -196,6 +196,7 @@ Here, *color* can be specified in the following ways:
 | data:update()                                            | applies changes to the canvas and uploads it to the GPU |
 | data:set_data(data: table<int>)                          | replaces pixel data (width * height * 4 numbers)        |
 | data:create_texture(name: str)                           | creates and shares texture to renderer                  |
+| data:unbind_texture()                                    | unbinds the texture from the canvas                     |
 
 ## Inline frame (iframe)
 

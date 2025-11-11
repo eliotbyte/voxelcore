@@ -66,6 +66,10 @@ void LuaCanvas::createTexture() {
     texture->setMipMapping(false, true);
 }
 
+void LuaCanvas::unbindTexture() {
+    texture.reset();
+}
+
 union RGBA {
     struct {
         uint8_t r, g, b, a;
@@ -99,7 +103,13 @@ static int l_at(State* L) {
     if (auto pixel = get_at(L, x, y)) {
         return pushinteger(L, pixel->rgba);
     }
+    return 0;
+}
 
+static int l_unbind_texture(State* L) {
+    if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
+        canvas->unbindTexture();
+    }
     return 0;
 }
 
@@ -238,6 +248,7 @@ static std::unordered_map<std::string, lua_CFunction> methods {
     {"clear", lua::wrap<l_clear>},
     {"update", lua::wrap<l_update>},
     {"create_texture", lua::wrap<l_create_texture>},
+    {"unbind_texture", lua::wrap<l_unbind_texture>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
