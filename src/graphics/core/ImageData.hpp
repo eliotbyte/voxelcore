@@ -34,8 +34,8 @@ public:
     void fixAlphaColor();
     void mulColor(const glm::ivec4& color);
     void mulColor(const ImageData& other);
-    void addColor(const glm::ivec4& color);
-    void addColor(const ImageData& other);
+    void addColor(const glm::ivec4& color, int multiplier);
+    void addColor(const ImageData& other, int multiplier);
 
     std::unique_ptr<ImageData> cropped(int x, int y, int width, int height) const;
 

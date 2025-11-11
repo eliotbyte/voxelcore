@@ -199,6 +199,7 @@ Here, *color* can be specified in the following ways:
 | data:unbind_texture()                                    | unbinds the texture from the canvas                     |
 | data:mul(*color* or Canvas)                              | multiplies a color by the specified color or canvas     |
 | data:add(*color* or Canvas)                              | adds a color or another canvas to a color               |
+| data:sub(*color* or Canvas)                              | subtracts a color or another canvas to a color          |
 
 ## Inline frame (iframe)
 

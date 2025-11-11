@@ -448,7 +448,7 @@ void ImageData::mulColor(const glm::ivec4& color) {
     }
 }
 
-void ImageData::addColor(const ImageData& other) {
+void ImageData::addColor(const ImageData& other, int multiplier) {
     check_matching(*this, other);
 
     uint comps;
@@ -462,7 +462,7 @@ void ImageData::addColor(const ImageData& other) {
         for (uint x = 0; x < width; x++) {
             uint idx = (y * width + x) * comps;
             for (uint c = 0; c < comps; c++) {
-                int val = data[idx + c] + other.data[idx + c];
+                int val = data[idx + c] + other.data[idx + c] * multiplier;
                 data[idx + c] =
                     static_cast<ubyte>(std::min(std::max(val, 0), 255));
             }
@@ -470,7 +470,7 @@ void ImageData::addColor(const ImageData& other) {
     }
 }
 
-void ImageData::addColor(const glm::ivec4& color) {
+void ImageData::addColor(const glm::ivec4& color, int multiplier) {
     uint comps;
     switch (format) {
         case ImageFormat::rgb888: comps = 3; break;
@@ -482,7 +482,7 @@ void ImageData::addColor(const glm::ivec4& color) {
         for (uint x = 0; x < width; x++) {
             uint idx = (y * width + x) * comps;
             for (uint c = 0; c < comps; c++) {
-                int val = data[idx + c] + color[c];
+                int val = data[idx + c] + color[c] * multiplier;
                 data[idx + c] =
                     static_cast<ubyte>(std::min(std::max(val, 0), 255));
             }

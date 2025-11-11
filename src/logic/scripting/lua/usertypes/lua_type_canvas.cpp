@@ -261,9 +261,23 @@ static int l_add(State* L) {
     }
     if (lua::istable(L, 2)) {
         RGBA rgba = get_rgba(L, 2);
-        canvas->getData().addColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a});
+        canvas->getData().addColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a}, 1);
     } else if (auto other = touserdata<LuaCanvas>(L, 2)) {
-        canvas->getData().addColor(other->getData());
+        canvas->getData().addColor(other->getData(), 1);
+    }
+    return 0;
+}
+
+static int l_sub(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    if (lua::istable(L, 2)) {
+        RGBA rgba = get_rgba(L, 2);
+        canvas->getData().addColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a}, -1);
+    } else if (auto other = touserdata<LuaCanvas>(L, 2)) {
+        canvas->getData().addColor(other->getData(), -1);
     }
     return 0;
 }
@@ -279,6 +293,7 @@ static std::unordered_map<std::string, lua_CFunction> methods {
     {"unbind_texture", lua::wrap<l_unbind_texture>},
     {"mul", lua::wrap<l_mul>},
     {"add", lua::wrap<l_add>},
+    {"sub", lua::wrap<l_sub>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
