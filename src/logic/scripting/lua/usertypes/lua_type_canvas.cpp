@@ -47,7 +47,9 @@ void LuaCanvas::update(int extrusion) {
                 h + extrusion * 2
             );
             extruded->blit(*data, extrusion, extrusion);
-            extruded->extrude(0, 0, w + extrusion * 2, h + extrusion * 2);
+            for (uint j = 0; j < extrusion; j++) {
+                extruded->extrude(extrusion - j, extrusion - j, w + j*2, h + j*2);
+            }
             texture->reloadPartial(
                 *extruded,
                 x - extrusion,
