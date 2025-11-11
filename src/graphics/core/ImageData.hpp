@@ -32,6 +32,10 @@ public:
     void blit(const ImageData& image, int x, int y);
     void extrude(int x, int y, int w, int h);
     void fixAlphaColor();
+    void mulColor(const glm::ivec4& color);
+    void mulColor(const ImageData& other);
+    void addColor(const glm::ivec4& color);
+    void addColor(const ImageData& other);
 
     std::unique_ptr<ImageData> cropped(int x, int y, int width, int height) const;
 

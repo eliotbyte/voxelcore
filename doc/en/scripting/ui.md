@@ -197,6 +197,8 @@ Here, *color* can be specified in the following ways:
 | data:set_data(data: table<int>)                          | replaces pixel data (width * height * 4 numbers)        |
 | data:create_texture(name: str)                           | creates and shares texture to renderer                  |
 | data:unbind_texture()                                    | unbinds the texture from the canvas                     |
+| data:mul(*color* or Canvas)                              | multiplies a color by the specified color or canvas     |
+| data:add(*color* or Canvas)                              | adds a color or another canvas to a color               |
 
 ## Inline frame (iframe)
 

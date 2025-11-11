@@ -197,6 +197,8 @@ document["worlds-panel"]:clear()
 | data:set_data(data: table<int>)                          | заменяет данные пикселей (ширина * высота * 4 чисел) |
 | data:create_texture(name: str)                           | создаёт и делится текстурой с рендерером             |
 | data:unbind_texture()                                    | отвязывает текстуру от холста                        |
+| data:mul(*цвет* или Canvas)                              | умножает увет на указанный цвет или холст            |
+| data:add(*цвет* или Canvas)                              | прибавляет цвет или другой холст к цвету             |
 
 ## Рамка встраивания (iframe)
 
