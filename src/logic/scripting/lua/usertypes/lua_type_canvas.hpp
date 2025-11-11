@@ -40,6 +40,7 @@ namespace lua {
         void update(int extrusion = ATLAS_EXTRUSION);
 
         void createTexture();
+        void unbindTexture();
 
         static int createMetatable(lua::State*);
         inline static std::string TYPENAME = "Canvas";

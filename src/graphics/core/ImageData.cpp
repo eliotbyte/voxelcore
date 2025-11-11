@@ -420,6 +420,99 @@ void ImageData::fixAlphaColor() {
     }
 }
 
+static void check_matching(const ImageData& a, const ImageData& b) {
+    if (b.getWidth() != a.getWidth() ||
+        b.getHeight() != a.getHeight() ||
+        b.getFormat() != a.getFormat()) {
+        throw std::runtime_error("image sizes or formats do not match");
+    }
+}
+
+void ImageData::mulColor(const glm::ivec4& color) {    
+    uint comps;
+    switch (format) {
+        case ImageFormat::rgb888: comps = 3; break;
+        case ImageFormat::rgba8888: comps = 4; break;
+        default:
+            throw std::runtime_error("only unsigned byte formats supported");    
+    }
+    for (uint y = 0; y < height; y++) {
+        for (uint x = 0; x < width; x++) {
+            uint idx = (y * width + x) * comps;
+            for (uint c = 0; c < comps; c++) {
+                float val = static_cast<float>(data[idx + c]) * color[c] / 255.0f;
+                data[idx + c] =
+                    static_cast<ubyte>(std::min(std::max(val, 0.0f), 255.0f));
+            }
+        }
+    }
+}
+
+void ImageData::addColor(const ImageData& other, int multiplier) {
+    check_matching(*this, other);
+
+    uint comps;
+    switch (format) {
+        case ImageFormat::rgb888: comps = 3; break;
+        case ImageFormat::rgba8888: comps = 4; break;
+        default:
+            throw std::runtime_error("only unsigned byte formats supported");    
+    }
+    for (uint y = 0; y < height; y++) {
+        for (uint x = 0; x < width; x++) {
+            uint idx = (y * width + x) * comps;
+            for (uint c = 0; c < comps; c++) {
+                int val = data[idx + c] + other.data[idx + c] * multiplier;
+                data[idx + c] =
+                    static_cast<ubyte>(std::min(std::max(val, 0), 255));
+            }
+        }
+    }
+}
+
+void ImageData::addColor(const glm::ivec4& color, int multiplier) {
+    uint comps;
+    switch (format) {
+        case ImageFormat::rgb888: comps = 3; break;
+        case ImageFormat::rgba8888: comps = 4; break;
+        default:
+            throw std::runtime_error("only unsigned byte formats supported");    
+    }
+    for (uint y = 0; y < height; y++) {
+        for (uint x = 0; x < width; x++) {
+            uint idx = (y * width + x) * comps;
+            for (uint c = 0; c < comps; c++) {
+                int val = data[idx + c] + color[c] * multiplier;
+                data[idx + c] =
+                    static_cast<ubyte>(std::min(std::max(val, 0), 255));
+            }
+        }
+    }
+}
+
+void ImageData::mulColor(const ImageData& other) {
+    check_matching(*this, other);
+
+    uint comps;
+    switch (format) {
+        case ImageFormat::rgb888: comps = 3; break;
+        case ImageFormat::rgba8888: comps = 4; break;
+        default:
+            throw std::runtime_error("only unsigned byte formats supported");    
+    }
+    for (uint y = 0; y < height; y++) {
+        for (uint x = 0; x < width; x++) {
+            uint idx = (y * width + x) * comps;
+            for (uint c = 0; c < comps; c++) {
+                float val = static_cast<float>(data[idx + c]) *
+                            static_cast<float>(other.data[idx + c]) / 255.0f;
+                data[idx + c] =
+                    static_cast<ubyte>(std::min(std::max(val, 0.0f), 255.0f));
+            }
+        }
+    }
+}
+
 std::unique_ptr<ImageData> add_atlas_margins(ImageData* image, int grid_size) {
     // RGBA is only supported
     assert(image->getFormat() == ImageFormat::rgba8888);

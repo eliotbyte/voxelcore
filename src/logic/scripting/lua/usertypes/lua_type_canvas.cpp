@@ -66,6 +66,10 @@ void LuaCanvas::createTexture() {
     texture->setMipMapping(false, true);
 }
 
+void LuaCanvas::unbindTexture() {
+    texture.reset();
+}
+
 union RGBA {
     struct {
         uint8_t r, g, b, a;
@@ -99,7 +103,13 @@ static int l_at(State* L) {
     if (auto pixel = get_at(L, x, y)) {
         return pushinteger(L, pixel->rgba);
     }
+    return 0;
+}
 
+static int l_unbind_texture(State* L) {
+    if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
+        canvas->unbindTexture();
+    }
     return 0;
 }
 
@@ -230,6 +240,48 @@ static int l_create_texture(State* L) {
     return 0;
 }
 
+static int l_mul(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    if (lua::isnumber(L, 2)) {
+        RGBA rgba = get_rgba(L, 2);
+        canvas->getData().mulColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a});
+    } else if (auto other = touserdata<LuaCanvas>(L, 2)) {
+        canvas->getData().mulColor(other->getData());
+    }
+    return 0;
+}
+
+static int l_add(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    if (lua::istable(L, 2)) {
+        RGBA rgba = get_rgba(L, 2);
+        canvas->getData().addColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a}, 1);
+    } else if (auto other = touserdata<LuaCanvas>(L, 2)) {
+        canvas->getData().addColor(other->getData(), 1);
+    }
+    return 0;
+}
+
+static int l_sub(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    if (lua::istable(L, 2)) {
+        RGBA rgba = get_rgba(L, 2);
+        canvas->getData().addColor(glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a}, -1);
+    } else if (auto other = touserdata<LuaCanvas>(L, 2)) {
+        canvas->getData().addColor(other->getData(), -1);
+    }
+    return 0;
+}
+
 static std::unordered_map<std::string, lua_CFunction> methods {
     {"at", lua::wrap<l_at>},
     {"set", lua::wrap<l_set>},
@@ -238,6 +290,10 @@ static std::unordered_map<std::string, lua_CFunction> methods {
     {"clear", lua::wrap<l_clear>},
     {"update", lua::wrap<l_update>},
     {"create_texture", lua::wrap<l_create_texture>},
+    {"unbind_texture", lua::wrap<l_unbind_texture>},
+    {"mul", lua::wrap<l_mul>},
+    {"add", lua::wrap<l_add>},
+    {"sub", lua::wrap<l_sub>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
