@@ -9,7 +9,7 @@
 #include "graphics/core/Texture.hpp"
 #include "graphics/core/Atlas.hpp"
 #include "util/Buffer.hpp"
-#include "../lua_custom_types.hpp"
+#include "../usertypes/lua_type_canvas.hpp"
 
 using namespace scripting;
 

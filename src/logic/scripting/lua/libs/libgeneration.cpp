@@ -10,7 +10,7 @@
 #include "content/ContentControl.hpp"
 #include "engine/Engine.hpp"
 #include "engine/EnginePaths.hpp"
-#include "../lua_custom_types.hpp"
+#include "../usertypes/lua_type_voxelfragment.hpp"
 
 using namespace scripting;
 
