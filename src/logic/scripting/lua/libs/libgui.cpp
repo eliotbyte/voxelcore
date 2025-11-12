@@ -546,8 +546,12 @@ static int p_get_options(UINode* node, lua::State* L) {
     return 0;
 }
 
+static int p_is_exists(UINode* node, lua::State* L) {
+    return lua::pushboolean(L, node != nullptr);
+}
+
 static bool is_node_required(std::string_view attr) {
-    return attr != "id";
+    return attr != "exists";
 }
 
 static int l_gui_getattr(lua::State* L) {
@@ -585,6 +589,7 @@ static int l_gui_getattr(lua::State* L) {
         std::function<int(UINode*, lua::State*)>>
         getters {
             {"id", p_get_id},
+            {"exists", p_is_exists},
             {"color", p_get_color},
             {"hoverColor", p_get_hover_color},
             {"pressedColor", p_get_pressed_color},
