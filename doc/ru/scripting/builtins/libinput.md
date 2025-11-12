@@ -49,6 +49,12 @@ input.get_mouse_pos() --> {int, int}
 Возвращает позицию курсора на экране.
 
 ```lua
+input.get_mouse_delta() --> {int, int}
+```
+
+Возращает дельту позиции курсора.
+
+```lua
 input.get_bindings() --> массив строк
 ```
 

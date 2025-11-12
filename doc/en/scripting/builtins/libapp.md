@@ -7,6 +7,8 @@ The script/test name without the path and extension is available as `app.script`
 local filename = "script:"..app.script..".lua"
 ```
 
+Since the control script may not belong to any of the packs, it does not belongs to its own package and has its own global namespace in which all global functions and tables are available, as well as the `app` library.
+
 ## Functions
 
 ```lua
