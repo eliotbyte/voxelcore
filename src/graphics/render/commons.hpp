@@ -8,6 +8,7 @@
 
 #include "graphics/core/MeshData.hpp"
 #include "util/Buffer.hpp"
+#include "maths/aabb.hpp"
 
 /// @brief Chunk mesh vertex format
 struct ChunkVertex {
@@ -44,10 +45,12 @@ struct SortingMeshData {
 struct ChunkMeshData {
     MeshData<ChunkVertex> mesh;
     SortingMeshData sortingMesh;
+    AABB localAabb; // mesh-space (chunk-local) bounds for precise culling
 };
 
 struct ChunkMesh {
     std::unique_ptr<Mesh<ChunkVertex>> mesh;
     SortingMeshData sortingMeshData;
     std::unique_ptr<Mesh<ChunkVertex> > sortedMesh = nullptr;
+    AABB localAabb; // mesh-space (chunk-local) bounds for precise culling
 };

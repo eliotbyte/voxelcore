@@ -13,10 +13,64 @@
 #include "maths/FrustumCulling.hpp"
 #include "util/listutil.hpp"
 #include "settings.hpp"
+#include <algorithm>
 
 static debug::Logger logger("chunks-render");
 
 size_t ChunksRenderer::visibleChunks = 0;
+
+namespace {
+struct CullingBounds { glm::vec3 min; glm::vec3 max; };
+static constexpr float K_CHUNK_CENTER_BIAS = 0.5f;
+// Minimal thickness to avoid culling flicker for geometry that forms 2D sheets
+static constexpr float K_AABB_MIN_EXTENT = 1e-2f;
+
+static inline bool has_volume(const AABB& aabb) {
+    auto s = aabb.size();
+    return s.x > 0.0f || s.y > 0.0f || s.z > 0.0f;
+}
+
+static inline CullingBounds compute_chunk_culling_bounds(
+    const Chunk& chunk,
+    const std::unordered_map<glm::ivec2, ChunkMesh>& meshes
+) {
+    glm::vec3 min(chunk.x * CHUNK_W, chunk.bottom, chunk.z * CHUNK_D);
+    glm::vec3 max(
+        chunk.x * CHUNK_W + CHUNK_W,
+        chunk.top,
+        chunk.z * CHUNK_D + CHUNK_D
+    );
+    auto it = meshes.find({chunk.x, chunk.z});
+    if (it != meshes.end()) {
+        const auto& aabb = it->second.localAabb;
+        if (has_volume(aabb)) {
+            // Convert to world coords (same 0.5 bias as draw model matrix)
+            min = glm::vec3(chunk.x * CHUNK_W + aabb.min().x + K_CHUNK_CENTER_BIAS,
+                            aabb.min().y + K_CHUNK_CENTER_BIAS,
+                            chunk.z * CHUNK_D + aabb.min().z + K_CHUNK_CENTER_BIAS);
+            max = glm::vec3(chunk.x * CHUNK_W + aabb.max().x + K_CHUNK_CENTER_BIAS,
+                            aabb.max().y + K_CHUNK_CENTER_BIAS,
+                            chunk.z * CHUNK_D + aabb.max().z + K_CHUNK_CENTER_BIAS);
+
+            // Clamp vertically to chunk vertical span to keep bounds tight and valid
+            min.y = (std::max)(static_cast<float>(chunk.bottom), min.y);
+            max.y = (std::min)(static_cast<float>(chunk.top),    max.y);
+
+            // Ensure non-degenerate extents to avoid view-dependent flicker
+            glm::vec3 size = max - min;
+            auto inflate_axis = [&](int axis) {
+                float c = (min[axis] + max[axis]) * 0.5f;
+                min[axis] = c - K_AABB_MIN_EXTENT * 0.5f;
+                max[axis] = c + K_AABB_MIN_EXTENT * 0.5f;
+            };
+            if (size.x < K_AABB_MIN_EXTENT) inflate_axis(0);
+            if (size.y < K_AABB_MIN_EXTENT) inflate_axis(1);
+            if (size.z < K_AABB_MIN_EXTENT) inflate_axis(2);
+        }
+    }
+    return {min, max};
+}
+}
 
 class RendererWorker : public util::Worker<std::shared_ptr<Chunk>, RendererResult> {
     const Chunks& chunks;
@@ -76,6 +130,7 @@ ChunksRenderer::ChunksRenderer(
                   meshes[result.key] = ChunkMesh {
                       std::make_unique<Mesh<ChunkVertex>>(meshData.mesh),
                       std::move(meshData.sortingMesh)};
+                  meshes[result.key].localAabb = meshData.localAabb;
               }
               inwork.erase(result.key);
           },
@@ -103,6 +158,8 @@ const Mesh<ChunkVertex>* ChunksRenderer::render(
         meshes[glm::ivec2(chunk->x, chunk->z)] = ChunkMesh {
             std::move(mesh.mesh), std::move(mesh.sortingMeshData)
         };
+        // propagate local aabb from immediate path too
+        meshes[glm::ivec2(chunk->x, chunk->z)].localAabb = renderer->getLocalAabb();
         return meshes[glm::ivec2(chunk->x, chunk->z)].mesh.get();
     }
     glm::ivec2 key(chunk->x, chunk->z);
@@ -175,14 +232,8 @@ const Mesh<ChunkVertex>* ChunksRenderer::retrieveChunk(
         chunk->updateHeights();
     }
     if (culling) {
-        glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-        glm::vec3 max(
-            chunk->x * CHUNK_W + CHUNK_W,
-            chunk->top,
-            chunk->z * CHUNK_D + CHUNK_D
-        );
-
-        if (!frustum.isBoxVisible(min, max)) return nullptr;
+        const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
+        if (!frustum.isBoxVisible(bounds.min, bounds.max)) return nullptr;
     }
     return mesh;
 }
@@ -211,24 +262,18 @@ void ChunksRenderer::drawShadowsPass(
         }
 
         glm::vec3 coord(
-            pos.x * CHUNK_W + 0.5f, 0.5f, pos.y * CHUNK_D + 0.5f
+            pos.x * CHUNK_W + K_CHUNK_CENTER_BIAS, K_CHUNK_CENTER_BIAS, pos.y * CHUNK_D + K_CHUNK_CENTER_BIAS
         );
 
-        glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-        glm::vec3 max(
-            chunk->x * CHUNK_W + CHUNK_W,
-            chunk->top,
-            chunk->z * CHUNK_D + CHUNK_D
-        );
-
-        if (!frustum.isBoxVisible(min, max)) {
+        const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
+        if (!frustum.isBoxVisible(bounds.min, bounds.max)) {
             continue;
         }
         glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
         shader.uniformMatrix("u_model", model);
         found->second.mesh->draw(GL_TRIANGLES, 
             glm::distance2(playerCamera.position * glm::vec3(1, 0, 1), 
-                           (min + max) * 0.5f * glm::vec3(1, 0, 1)) < denseDistance2);
+                           (bounds.min + bounds.max) * 0.5f * glm::vec3(1, 0, 1)) < denseDistance2);
     }
 }
 
@@ -275,7 +320,7 @@ void ChunksRenderer::drawChunks(
 
         if (mesh) {
             glm::vec3 coord(
-                chunk->x * CHUNK_W + 0.5f, 0.5f, chunk->z * CHUNK_D + 0.5f
+                chunk->x * CHUNK_W + K_CHUNK_CENTER_BIAS, K_CHUNK_CENTER_BIAS, chunk->z * CHUNK_D + K_CHUNK_CENTER_BIAS
             );
             glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
             shader.uniformMatrix("u_model", model);
@@ -305,7 +350,7 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
     static int frameid = 0;
     frameid++;
 
-    bool culling = settings.graphics.frustumCulling.get();
+    const bool culling = settings.graphics.frustumCulling.get();
     const auto& chunks = this->chunks.getChunks();
     const auto& cameraPos = camera.position;
     const auto& atlas = assets.require<Atlas>("blocks");
@@ -314,53 +359,68 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
     atlas.getTexture()->bind();
     shader.uniformMatrix("u_model", glm::mat4(1.0f));
     shader.uniform1i("u_alphaClip", false);
-    
+
+    struct VisibleChunkTrans {
+        glm::ivec2 key;
+        const std::shared_ptr<Chunk>* chunkPtr;
+        long long nearestDist2;
+    };
+    std::vector<VisibleChunkTrans> order;
+    order.reserve(indices.size());
+
+    // Build per-chunk nearest distance for translucent entries
     for (const auto& index : indices) {
         const auto& chunk = chunks[index.index];
         if (chunk == nullptr || !chunk->flags.lighted) {
             continue;
         }
-        const auto& found = meshes.find(glm::ivec2(chunk->x, chunk->z));
-        if (found == meshes.end() || found->second.sortingMeshData.entries.empty()) {
+        const auto found = meshes.find(glm::ivec2(chunk->x, chunk->z));
+        if (found == meshes.end()) {
+            continue;
+        }
+        const auto& entries = found->second.sortingMeshData.entries;
+        if (entries.empty()) {
             continue;
         }
 
         if (culling) {
-            glm::vec3 min(chunk->x * CHUNK_W, chunk->bottom, chunk->z * CHUNK_D);
-            glm::vec3 max(
-                chunk->x * CHUNK_W + CHUNK_W,
-                chunk->top,
-                chunk->z * CHUNK_D + CHUNK_D
-            );
-
-            if (!frustum.isBoxVisible(min, max)) continue;
+            const auto bounds = compute_chunk_culling_bounds(*chunk, meshes);
+            if (!frustum.isBoxVisible(bounds.min, bounds.max)) continue;
         }
 
-        auto& chunkEntries = found->second.sortingMeshData.entries;
+        long long nearest = LLONG_MAX;
+        for (const auto& e : entries) {
+            long long d2 = static_cast<long long>(glm::distance2(e.position, cameraPos));
+            if (d2 < nearest) nearest = d2;
+        }
+        order.push_back(VisibleChunkTrans{glm::ivec2(chunk->x, chunk->z), &chunks[index.index], nearest});
+    }
 
-        if (chunkEntries.size() == 1) {
-            auto& entry = chunkEntries.at(0);
-            if (found->second.sortedMesh == nullptr) {
-                found->second.sortedMesh = std::make_unique<Mesh<ChunkVertex>>(
-                    entry.vertexData.data(), entry.vertexData.size()
+    // Sort chunks by nearest translucent distance back-to-front (far to near)
+    std::sort(order.begin(), order.end(), [](const VisibleChunkTrans& a, const VisibleChunkTrans& b) {
+        return a.nearestDist2 > b.nearestDist2;
+    });
+
+    // Draw per-chunk sorted mesh (keeps GPU buffers and avoids per-frame repack)
+    for (const auto& item : order) {
+        const auto& chunk = *item.chunkPtr;
+        const auto found = meshes.find(item.key);
+        if (found == meshes.end()) continue;
+        auto& chunkEntries = found->second.sortingMeshData.entries;
+        if (chunkEntries.empty()) continue;
+
+        // Keep per-chunk internal order up-to-date occasionally
+        if (found->second.sortedMesh == nullptr || (frameid + chunk->x) % sortInterval == 0) {
+            for (auto& entry : chunkEntries) {
+                entry.distance = static_cast<long long>(
+                    glm::distance2(entry.position, cameraPos)
                 );
             }
-            found->second.sortedMesh->draw();
-            continue;
-        }
-        for (auto& entry : chunkEntries) {
-            entry.distance = static_cast<long long>(
-                glm::distance2(entry.position, cameraPos)
-            );
-        }
-        if (found->second.sortedMesh == nullptr ||
-            (frameid + chunk->x) % sortInterval == 0) {
             std::sort(chunkEntries.begin(), chunkEntries.end());
             size_t size = 0;
             for (const auto& entry : chunkEntries) {
                 size += entry.vertexData.size();
             }
-
             static util::Buffer<ChunkVertex> buffer;
             if (buffer.size() < size) {
                 buffer = util::Buffer<ChunkVertex>(size);
