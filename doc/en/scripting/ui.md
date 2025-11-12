@@ -37,6 +37,7 @@ Properties that apply to all elements:
 | Name          | Type    | Read | Write | Description                                 |
 | ------------- | ------- | ---- | ----- | ------------------------------------------- |
 | id            | string  | yes  | *no*  | element id                                  |
+| exists        | bool    | yes  | *no*  | checks if element exists                    |
 | pos           | vec2    | yes  | yes   | element position inside a container         |
 | wpos          | vec2    | yes  | yes   | element position inside the window          |
 | size          | vec2    | yes  | yes   | element size                                |
