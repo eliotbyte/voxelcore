@@ -1,7 +1,7 @@
 #include "ContentControl.hpp"
 
 #include "io/io.hpp"
-#include "io/engine_paths.hpp"
+#include "engine/EnginePaths.hpp"
 #include "Content.hpp"
 #include "ContentPack.hpp"
 #include "ContentBuilder.hpp"
@@ -30,6 +30,7 @@ ContentControl::ContentControl(
     manager->setSources({
         "world:content",
         "user:content",
+        "project:content",
         "res:content",
     });
 }
@@ -48,10 +49,10 @@ std::vector<std::string>& ContentControl::getBasePacks() {
     return basePacks;
 }
 
-void ContentControl::resetContent() {
+void ContentControl::resetContent(const std::vector<std::string>& nonReset) {
     paths.setCurrentWorldFolder("");
 
-    scripting::cleanup();
+    scripting::cleanup(nonReset);
     std::vector<PathsRoot> resRoots;
     {
         auto pack = ContentPack::createCore();
@@ -78,8 +79,6 @@ void ContentControl::loadContent(const std::vector<std::string>& names) {
 }
 
 void ContentControl::loadContent() {
-    scripting::cleanup();
-
     std::vector<std::string> names;
     for (auto& pack : contentPacks) {
         names.push_back(pack.id);

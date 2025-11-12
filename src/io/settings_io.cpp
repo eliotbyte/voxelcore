@@ -49,8 +49,9 @@ SettingsHandler::SettingsHandler(EngineSettings& settings) {
     builder.add("height", &settings.display.height);
     builder.add("samples", &settings.display.samples);
     builder.add("framerate", &settings.display.framerate);
-    builder.add("fullscreen", &settings.display.fullscreen);
     builder.add("limit-fps-iconified", &settings.display.limitFpsIconified);
+    builder.add("window-mode", &settings.display.windowMode);
+    builder.add("adaptive-menu-fps", &settings.display.adaptiveFpsInMenu);
 
     builder.section("camera");
     builder.add("sensitivity", &settings.camera.sensitivity);
@@ -78,6 +79,7 @@ SettingsHandler::SettingsHandler(EngineSettings& settings) {
     builder.add("ssao", &settings.graphics.ssao);
     builder.add("shadows-quality", &settings.graphics.shadowsQuality);
     builder.add("dense-render-distance", &settings.graphics.denseRenderDistance);
+    builder.add("soft-lighting", &settings.graphics.softLighting);
 
     builder.section("ui");
     builder.add("language", &settings.ui.language);

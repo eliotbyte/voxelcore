@@ -49,6 +49,12 @@ input.get_mouse_pos() --> {int, int}
 Returns cursor screen position.
 
 ```lua
+input.get_mouse_delta() --> {int, int}
+```
+
+Returns cursor movement delta.
+
+```lua
 input.get_bindings() --> strings array
 ```
 

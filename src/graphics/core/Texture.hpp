@@ -19,6 +19,7 @@ public:
     virtual void bind() const;
     virtual void unbind() const;
     void reload(const ubyte* data);
+    void reloadPartial(const ImageData& image, uint x, uint y, uint w, uint h);
 
     void setNearestFilter();
 

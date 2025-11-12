@@ -3,7 +3,6 @@
 #include <vector>
 #include <cwctype>
 
-#include "../lua_custom_types.hpp"
 #include "util/stringutil.hpp"
 
 static int l_tobytes(lua::State* L) {
@@ -99,5 +98,5 @@ const luaL_Reg utf8lib[] = {
     {"lower", lua::wrap<l_lower>},
     {"encode", lua::wrap<l_encode>},
     {"escape", lua::wrap<l_escape>},
-    {NULL, NULL}
+    {nullptr, nullptr}
 };
