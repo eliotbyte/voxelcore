@@ -30,14 +30,17 @@ using namespace gui;
 using namespace scripting;
 
 static DocumentNode get_document_node_impl(
-    lua::State*, const std::string& name, const std::string& nodeName
+    lua::State*, const std::string& name, const std::string& nodeName, bool throwable=true
 ) {
     auto doc = engine->getAssets()->get<UiDocument>(name);
     if (doc == nullptr) {
-        throw std::runtime_error("document '" + name + "' not found");
+        if (throwable) {
+            throw std::runtime_error("document '" + name + "' not found");
+        }
+        return {nullptr, nullptr};
     }
     auto node = doc->get(nodeName);
-    if (node == nullptr) {
+    if (node == nullptr && throwable) {
         throw std::runtime_error(
             "document '" + name + "' has no element with id '" + nodeName + "'"
         );
@@ -459,6 +462,9 @@ static int p_get_content_offset(UINode* node, lua::State* L) {
     return lua::pushvec(L, node->getContentOffset());
 }
 static int p_get_id(UINode* node, lua::State* L) {
+    if (node == nullptr) {
+        return 0;
+    }
     return lua::pushstring(L, node->getId());
 }
 static int p_get_color(UINode* node, lua::State* L) {
@@ -540,6 +546,10 @@ static int p_get_options(UINode* node, lua::State* L) {
     return 0;
 }
 
+static bool is_node_required(std::string_view attr) {
+    return attr != "id";
+}
+
 static int l_gui_getattr(lua::State* L) {
     if (!lua::isstring(L, 1)) {
         throw std::runtime_error("document name is not a string");
@@ -568,6 +578,7 @@ static int l_gui_getattr(lua::State* L) {
         throw std::runtime_error("attribute name is not a string");
     }
     auto attr = lua::require_string(L, 3);
+    bool required = is_node_required(attr);
 
     static const std::unordered_map<
         std::string_view,
@@ -630,7 +641,7 @@ static int l_gui_getattr(lua::State* L) {
         };
     auto func = getters.find(attr);
     if (func != getters.end()) {
-        auto docnode = get_document_node_impl(L, docname, element);
+        auto docnode = get_document_node_impl(L, docname, element, required);
         auto node = docnode.node;
         return func->second(node.get(), L);
     }
