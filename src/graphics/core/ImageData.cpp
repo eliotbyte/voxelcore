@@ -470,6 +470,32 @@ void ImageData::addColor(const ImageData& other, int multiplier) {
     }
 }
 
+void ImageData::extend(int newWidth, int newHeight) {
+    size_t comps;
+    switch (format) {
+        case ImageFormat::rgb888: comps = 3; break;
+        case ImageFormat::rgba8888: comps = 4; break;
+        default:
+            throw std::runtime_error("only unsigned byte formats supported");    
+    }
+    auto newData = std::make_unique<ubyte[]>(newWidth * newHeight * comps);
+    for (uint y = 0; y < newHeight; y++) {
+        for (uint x = 0; x < newWidth; x++) {
+            for (size_t c = 0; c < comps; c++) {
+                if (x < width && y < height) {
+                    newData[(y * newWidth + x) * comps + c] =
+                        data[(y * width + x) * comps + c];
+                } else {
+                    newData[(y * newWidth + x) * comps + c] = 0;
+                }
+            }
+        }
+    }
+    data = std::move(newData);
+    width = newWidth;
+    height = newHeight;
+}
+
 void ImageData::addColor(const glm::ivec4& color, int multiplier) {
     uint comps;
     switch (format) {
