@@ -380,7 +380,7 @@ static int p_get_region(UINode* node, lua::State* L) {
 
 static int p_get_data(UINode* node, lua::State* L) {
     if (auto canvas = dynamic_cast<Canvas*>(node)) {
-        return lua::newuserdata<lua::LuaCanvas>(L, canvas->texture(), canvas->data());
+        return lua::newuserdata<lua::LuaCanvas>(L, canvas->getTexture(), canvas->getData());
     }
     return 0;
 }

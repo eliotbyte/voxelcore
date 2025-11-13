@@ -44,10 +44,10 @@ void Texture::unbind() const {
 void Texture::reload(const ImageData& image) {
     width = image.getWidth();
     height = image.getHeight();
-    reload(image.getData());
+    reload(image.getData(), width, height);
 }
 
-void Texture::reload(const ubyte* data) {
+void Texture::reload(const ubyte* data, uint width, uint height) {
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
         GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(data));
