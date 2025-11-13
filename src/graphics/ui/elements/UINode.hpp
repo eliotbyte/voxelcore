@@ -121,6 +121,8 @@ namespace gui {
         vec2supplier sizefunc = nullptr;
         /// @brief 'onclick' callbacks
         ActionsSet actions;
+        /// @brief 'onrightclick' callbacks
+        ActionsSet rightClickCallbacks;
         /// @brief 'ondoubleclick' callbacks
         ActionsSet doubleClickCallbacks;
         /// @brief 'onfocus' callbacks
@@ -188,6 +190,7 @@ namespace gui {
         int getZIndex() const;
 
         virtual UINode* listenAction(const onaction& action);
+        virtual UINode* listenRightClick(const onaction& action);
         virtual UINode* listenDoubleClick(const onaction& action);
         virtual UINode* listenFocus(const onaction& action);
         virtual UINode* listenDefocus(const onaction& action);
@@ -195,7 +198,7 @@ namespace gui {
         virtual void onFocus();
         virtual void doubleClick(int x, int y);
         virtual void click(int x, int y);
-        virtual void clicked(Mousecode button) {}
+        virtual void clicked(Mousecode button);
         virtual void mouseMove(int x, int y) {};
         virtual void mouseRelease(int x, int y);
         virtual void scrolled(int value);

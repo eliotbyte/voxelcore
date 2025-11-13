@@ -181,6 +181,10 @@ static void read_uinode(
         node.listenAction(onclick);
     }
 
+    if (auto onclick = create_action(reader, element, "onrightclick")) {
+        node.listenRightClick(onclick);
+    }
+
     if (auto onfocus = create_action(reader, element, "onfocus")) {
         node.listenFocus(onfocus);
     }

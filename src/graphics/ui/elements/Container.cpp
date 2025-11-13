@@ -177,6 +177,7 @@ void Container::add(const std::shared_ptr<UINode>& node) {
         parent->setMustRefresh();
         parent = parent->getParent();
     }
+    gui.getWindow().setShouldRefresh();
 }
 
 void Container::add(const std::shared_ptr<UINode>& node, glm::vec2 pos) {

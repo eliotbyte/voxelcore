@@ -69,6 +69,11 @@ UINode* UINode::listenAction(const onaction& action) {
     return this;
 }
 
+UINode* UINode::listenRightClick(const onaction& action) {
+    rightClickCallbacks.listen(action);
+    return this;
+}
+
 UINode* UINode::listenDoubleClick(const onaction& action) {
     doubleClickCallbacks.listen(action);
     return this;
@@ -86,6 +91,12 @@ UINode* UINode::listenDefocus(const onaction& action) {
 
 void UINode::click(int, int) {
     pressed = true;
+}
+
+void UINode::clicked(Mousecode button) {
+    if (button == Mousecode::BUTTON_2) {
+        rightClickCallbacks.notify(gui);
+    }
 }
 
 void UINode::doubleClick(int x, int y) {
