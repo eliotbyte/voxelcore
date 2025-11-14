@@ -31,7 +31,7 @@ Button::Button(
     GUI& gui,
     const std::wstring& text,
     glm::vec4 padding,
-    const onaction& action,
+    const OnAction& action,
     glm::vec2 size
 )
     : Panel(gui, size, padding, 0.0f) {

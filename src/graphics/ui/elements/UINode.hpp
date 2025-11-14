@@ -19,9 +19,9 @@ namespace gui {
     class GUI;
     class Container;
 
-    using onaction = std::function<void(GUI&)>;
-    using onnumberchange = std::function<void(GUI&, double)>;
-    using onstringchange = std::function<void(GUI&, const std::string&)>;
+    using OnAction = std::function<void(GUI&)>;
+    using OnNumberChange = std::function<void(GUI&, double)>;
+    using OnStringChange = std::function<void(GUI&, const std::string&)>;
 
     template<typename... Args>
     class CallbacksSet {
@@ -187,10 +187,10 @@ namespace gui {
         /// @brief Get element z-index
         int getZIndex() const;
 
-        virtual UINode* listenAction(const onaction& action);
-        virtual UINode* listenDoubleClick(const onaction& action);
-        virtual UINode* listenFocus(const onaction& action);
-        virtual UINode* listenDefocus(const onaction& action);
+        virtual UINode* listenAction(const OnAction& action);
+        virtual UINode* listenDoubleClick(const OnAction& action);
+        virtual UINode* listenFocus(const OnAction& action);
+        virtual UINode* listenDefocus(const OnAction& action);
 
         virtual void onFocus();
         virtual void doubleClick(int x, int y);

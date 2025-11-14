@@ -73,7 +73,7 @@ static runnable create_runnable(
     return nullptr;
 }
 
-static onaction create_action(
+static OnAction create_action(
     const UiXmlReader& reader,
     const xml::xmlelement& element,
     const std::string& name

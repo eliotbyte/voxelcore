@@ -41,7 +41,7 @@ SelectBox::SelectBox(
     });
 }
 
-void SelectBox::listenChange(onstringchange&& callback) {
+void SelectBox::listenChange(OnStringChange&& callback) {
     changeCallbacks.listen(std::move(callback));
 }
 

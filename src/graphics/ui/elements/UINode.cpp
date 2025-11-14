@@ -64,22 +64,22 @@ UINode* UINode::getParent() const {
     return parent;
 }
 
-UINode* UINode::listenAction(const onaction& action) {
+UINode* UINode::listenAction(const OnAction& action) {
     actions.listen(action);
     return this;
 }
 
-UINode* UINode::listenDoubleClick(const onaction& action) {
+UINode* UINode::listenDoubleClick(const OnAction& action) {
     doubleClickCallbacks.listen(action);
     return this;
 }
 
-UINode* UINode::listenFocus(const onaction& action) {
+UINode* UINode::listenFocus(const OnAction& action) {
     focusCallbacks.listen(action);
     return this;
 }
 
-UINode* UINode::listenDefocus(const onaction& action) {
+UINode* UINode::listenDefocus(const OnAction& action) {
     defocusCallbacks.listen(action);
     return this;
 }
