@@ -64,24 +64,20 @@ UINode* UINode::getParent() const {
     return parent;
 }
 
-UINode* UINode::listenAction(const OnAction& action) {
-    actions.listen(action);
-    return this;
+void UINode::listenClick(OnAction action) {
+    actions.listen(UIAction::CLICK, std::move(action));
 }
 
-UINode* UINode::listenDoubleClick(const OnAction& action) {
-    doubleClickCallbacks.listen(action);
-    return this;
+void UINode::listenDoubleClick(OnAction action) {
+    actions.listen(UIAction::DOUBLE_CLICK, std::move(action));
 }
 
-UINode* UINode::listenFocus(const OnAction& action) {
-    focusCallbacks.listen(action);
-    return this;
+void UINode::listenFocus(OnAction action) {
+    actions.listen(UIAction::FOCUS, std::move(action));
 }
 
-UINode* UINode::listenDefocus(const OnAction& action) {
-    defocusCallbacks.listen(action);
-    return this;
+void UINode::listenDefocus(OnAction action) {
+    actions.listen(UIAction::DEFOCUS, std::move(action));
 }
 
 void UINode::click(int, int) {
@@ -91,14 +87,14 @@ void UINode::click(int, int) {
 void UINode::doubleClick(int x, int y) {
     pressed = true;
     if (isInside(glm::vec2(x, y))) {
-        doubleClickCallbacks.notify(gui);
+        actions.notify(UIAction::DOUBLE_CLICK, gui);
     }
 }
 
 void UINode::mouseRelease(int x, int y) {
     pressed = false;
     if (isInside(glm::vec2(x, y))) {
-        actions.notify(gui);
+        actions.notify(UIAction::CLICK, gui);
     }
 }
 
@@ -108,12 +104,12 @@ bool UINode::isPressed() const {
 
 void UINode::onFocus() {
     focused = true;
-    focusCallbacks.notify(gui);
+    actions.notify(UIAction::FOCUS, gui);
 }
 
 void UINode::defocus() {
     focused = false;
-    defocusCallbacks.notify(gui);
+    actions.notify(UIAction::DEFOCUS, gui);
 }
 
 bool UINode::isFocused() const {

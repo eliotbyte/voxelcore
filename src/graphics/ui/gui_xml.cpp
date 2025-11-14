@@ -178,7 +178,7 @@ static void read_uinode(
     }
 
     if (auto onclick = create_action(reader, element, "onclick")) {
-        node.listenAction(onclick);
+        node.listenClick(onclick);
     }
 
     if (auto onfocus = create_action(reader, element, "onfocus")) {

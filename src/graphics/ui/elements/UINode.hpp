@@ -46,7 +46,39 @@ namespace gui {
         }
     };
 
-    using ActionsSet = CallbacksSet<GUI&>;
+    template<class TagT, typename... Args>
+    class TaggedCallbacksSet {
+    public:
+        using Func = std::function<void(Args...)>;
+    private:
+        std::unique_ptr<std::vector<std::pair<TagT, Func>>> callbacks;
+    public:
+        void listen(TagT tag, Func&& callback) {
+            if (callbacks == nullptr) {
+                callbacks =
+                    std::make_unique<std::vector<std::pair<TagT, Func>>>();
+            }
+            callbacks->push_back({tag, std::move(callback)});
+        }
+
+        void notify(TagT notifyTag, Args&&... args) {
+            if (callbacks == nullptr) {
+                return;
+            }
+            for (const auto& [tag, callback] : * callbacks) {
+                if (tag != notifyTag) {
+                    continue;
+                }
+                callback(args...);
+            }
+        }
+    };
+
+    enum class UIAction {
+        CLICK, DOUBLE_CLICK, FOCUS, DEFOCUS
+    };
+
+    using ActionsSet = TaggedCallbacksSet<UIAction, GUI&>;
     using StringCallbacksSet = CallbacksSet<GUI&, const std::string&>;
     
     enum class Align {
@@ -119,14 +151,8 @@ namespace gui {
         vec2supplier positionfunc = nullptr;
         /// @brief size supplier for the element (called on parent element size update)
         vec2supplier sizefunc = nullptr;
-        /// @brief 'onclick' callbacks
+        /// @brief parameterless callbacks
         ActionsSet actions;
-        /// @brief 'ondoubleclick' callbacks
-        ActionsSet doubleClickCallbacks;
-        /// @brief 'onfocus' callbacks
-        ActionsSet focusCallbacks;
-        /// @brief 'ondefocus' callbacks
-        ActionsSet defocusCallbacks;
         /// @brief element tooltip text
         std::wstring tooltip;
         /// @brief element tooltip delay
@@ -187,10 +213,10 @@ namespace gui {
         /// @brief Get element z-index
         int getZIndex() const;
 
-        virtual UINode* listenAction(const OnAction& action);
-        virtual UINode* listenDoubleClick(const OnAction& action);
-        virtual UINode* listenFocus(const OnAction& action);
-        virtual UINode* listenDefocus(const OnAction& action);
+        virtual void listenClick(OnAction action);
+        virtual void listenDoubleClick(OnAction action);
+        virtual void listenFocus(OnAction action);
+        virtual void listenDefocus(OnAction action);
 
         virtual void onFocus();
         virtual void doubleClick(int x, int y);

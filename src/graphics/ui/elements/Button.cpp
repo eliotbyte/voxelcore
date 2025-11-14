@@ -42,7 +42,7 @@ Button::Button(
     }
 
     if (action) {
-        listenAction(action);
+        listenClick(action);
     }
     setScrollable(false);
 
