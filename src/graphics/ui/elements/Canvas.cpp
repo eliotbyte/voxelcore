@@ -20,7 +20,7 @@ void gui::Canvas::draw(const DrawContext& pctx, const Assets& assets) {
     batch->rect(pos.x, pos.y, size.x, size.y, 0, 0, 0, {}, false, false, col);
 }
 
-void gui::Canvas::setSize(glm::vec2 size) {
+void gui::Canvas::setSize(const glm::vec2& size) {
     UINode::setSize(size);
     data->extend(size.x, size.y);
     texture->reload(*data);

@@ -193,7 +193,7 @@ glm::vec4 UINode::calcColor() const {
     return color;
 }
 
-void UINode::setPos(glm::vec2 pos) {
+void UINode::setPos(const glm::vec2& pos) {
     this->pos = pos;
 }
 
@@ -205,7 +205,7 @@ glm::vec2 UINode::getSize() const {
     return size;
 }
 
-void UINode::setSize(glm::vec2 size) {
+void UINode::setSize(const glm::vec2& size) {
     this->size = glm::vec2(
         glm::max(minSize.x, glm::min(maxSize.x, size.x)),
         glm::max(minSize.y, glm::min(maxSize.y, size.y))
@@ -216,7 +216,7 @@ glm::vec2 UINode::getMinSize() const {
     return minSize;
 }
 
-void UINode::setMinSize(glm::vec2 minSize) {
+void UINode::setMinSize(const glm::vec2& minSize) {
     this->minSize = minSize;
     setSize(getSize());
 }
@@ -225,7 +225,7 @@ glm::vec2 UINode::getMaxSize() const {
     return maxSize;
 }
 
-void UINode::setMaxSize(glm::vec2 maxSize) {
+void UINode::setMaxSize(const glm::vec2& maxSize) {
     this->maxSize = maxSize;
     setSize(getSize());
 }

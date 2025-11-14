@@ -248,7 +248,7 @@ static void read_base_panel_impl(
     if (element.has("orientation")) {
         auto& oname = element.attr("orientation").getText();
         if (oname == "horizontal") {
-            panel.setOrientation(Orientation::horizontal);
+            panel.setOrientation(Orientation::HORIZONTAL);
         }
     }
 }
@@ -273,7 +273,7 @@ static void read_panel_impl(
     if (element.has("orientation")) {
         auto& oname = element.attr("orientation").getText();
         if (oname == "horizontal") {
-            panel.setOrientation(Orientation::horizontal);
+            panel.setOrientation(Orientation::HORIZONTAL);
         }
     }
     if (subnodes) {
@@ -360,8 +360,8 @@ static std::shared_ptr<UINode> read_split_box(
     float splitPos = element.attr("split-pos", "0.5").asFloat();
     Orientation orientation =
         element.attr("orientation", "vertical").getText() == "horizontal"
-            ? Orientation::horizontal
-            : Orientation::vertical;
+            ? Orientation::HORIZONTAL
+            : Orientation::VERTICAL;
     auto splitBox = std::make_shared<SplitBox>(
         reader.getGUI(), glm::vec2(), splitPos, orientation
     );

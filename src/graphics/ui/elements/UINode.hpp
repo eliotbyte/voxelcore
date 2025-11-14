@@ -269,14 +269,14 @@ namespace gui {
         virtual glm::vec2 getContentOffset() {return glm::vec2(0.0f);};
         /// @brief Calculate screen position of the element
         virtual glm::vec2 calcPos() const;
-        virtual void setPos(glm::vec2 pos);
+        virtual void setPos(const glm::vec2& pos);
         virtual glm::vec2 getPos() const;
         glm::vec2 getSize() const;
-        virtual void setSize(glm::vec2 size);
+        virtual void setSize(const glm::vec2& size);
         glm::vec2 getMinSize() const;
-        virtual void setMinSize(glm::vec2 size);
+        virtual void setMinSize(const glm::vec2& size);
         glm::vec2 getMaxSize() const;
-        virtual void setMaxSize(glm::vec2 size);
+        virtual void setMaxSize(const glm::vec2& size);
         /// @brief Called in containers when new element added
         virtual void refresh() {};
         virtual void fullRefresh() {
