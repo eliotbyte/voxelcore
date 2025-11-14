@@ -192,7 +192,7 @@ Hud::Hud(Engine& engine, LevelFrontend& frontend, Player& player)
     gui.add(contentAccessPanel);
 
     auto dplotter = std::make_shared<Plotter>(gui, 350, 250, 2000, 16);
-    dplotter->setGravity(Gravity::bottom_right);
+    dplotter->setGravity(Gravity::BOTTOM_RIGHT);
     dplotter->setInteractive(false);
     add(HudElement(HudElementMode::PERMANENT, nullptr, dplotter, true));
 

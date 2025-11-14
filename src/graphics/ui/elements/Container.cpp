@@ -211,11 +211,11 @@ void Container::clear() {
     refresh();
 }
 
-void Container::listenInterval(float interval, ontimeout callback, int repeat) {
+void Container::listenInterval(float interval, OnTimeOut callback, int repeat) {
     intervalEvents.push_back({std::move(callback), interval, 0.0f, repeat});
 }
 
-void Container::setSize(glm::vec2 size) {
+void Container::setSize(const glm::vec2& size) {
     if (size == getSize()) {
         return;
     }
