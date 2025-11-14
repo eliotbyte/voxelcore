@@ -30,31 +30,31 @@
 using namespace gui;
 
 static Align align_from_string(std::string_view str, Align def) {
-    if (str == "left") return Align::left;
-    if (str == "center") return Align::center;
-    if (str == "right") return Align::right;
-    if (str == "top") return Align::top;
-    if (str == "bottom") return Align::bottom;
+    if (str == "left") return Align::LEFT;
+    if (str == "center") return Align::CENTER;
+    if (str == "right") return Align::RIGHT;
+    if (str == "top") return Align::TOP;
+    if (str == "bottom") return Align::BOTTOM;
     return def;
 }
 
 static Gravity gravity_from_string(const std::string& str) {
     static const std::unordered_map<std::string, Gravity> gravity_names {
-        {"top-left", Gravity::top_left},
-        {"top-center", Gravity::top_center},
-        {"top-right", Gravity::top_right},
-        {"center-left", Gravity::center_left},
-        {"center-center", Gravity::center_center},
-        {"center-right", Gravity::center_right},
-        {"bottom-left", Gravity::bottom_left},
-        {"bottom-center", Gravity::bottom_center},
-        {"bottom-right", Gravity::bottom_right},
+        {"top-left", Gravity::TOP_LEFT},
+        {"top-center", Gravity::TOP_CENTER},
+        {"top-right", Gravity::TOP_RIGHT},
+        {"center-left", Gravity::CENTER_LEFT},
+        {"center-center", Gravity::CENTER_CENTER},
+        {"center-right", Gravity::CENTER_RIGHT},
+        {"bottom-left", Gravity::BOTTOM_LEFT},
+        {"bottom-center", Gravity::BOTTOM_CENTER},
+        {"bottom-right", Gravity::BOTTOM_RIGHT},
     };
     auto found = gravity_names.find(str);
     if (found != gravity_names.end()) {
         return found->second;
     }
-    return Gravity::none;
+    return Gravity::NONE;
 }
 
 static runnable create_runnable(
@@ -334,7 +334,7 @@ static std::shared_ptr<UINode> read_label(
     if (element.has("multiline")) {
         label->setMultiline(element.attr("multiline").asBool());
         if (!element.has("valign")) {
-            label->setVerticalAlign(Align::top);
+            label->setVerticalAlign(Align::TOP);
         }
     }
     if (element.has("text-wrap")) {

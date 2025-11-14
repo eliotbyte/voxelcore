@@ -334,7 +334,7 @@ void UINode::reposition() {
 }
 
 void UINode::setGravity(Gravity gravity) {
-    if (gravity == Gravity::none) {
+    if (gravity == Gravity::NONE) {
         setPositionFunc(nullptr);
         return;
     }
@@ -349,27 +349,27 @@ void UINode::setGravity(Gravity gravity) {
 
         float x = 0.0f, y = 0.0f;
         switch (gravity) {
-            case Gravity::top_left:
-            case Gravity::center_left:
-            case Gravity::bottom_left: x = margin.x; break;
-            case Gravity::top_center:
-            case Gravity::center_center:
-            case Gravity::bottom_center: x = (parentSize.x-size.x)/2.0f; break;
-            case Gravity::top_right:
-            case Gravity::center_right:
-            case Gravity::bottom_right: x = parentSize.x-size.x-margin.z; break;
+            case Gravity::TOP_LEFT:
+            case Gravity::CENTER_LEFT:
+            case Gravity::BOTTOM_LEFT: x = margin.x; break;
+            case Gravity::TOP_CENTER:
+            case Gravity::CENTER_CENTER:
+            case Gravity::BOTTOM_CENTER: x = (parentSize.x-size.x)/2.0f; break;
+            case Gravity::TOP_RIGHT:
+            case Gravity::CENTER_RIGHT:
+            case Gravity::BOTTOM_RIGHT: x = parentSize.x-size.x-margin.z; break;
             default: break;
         }
         switch (gravity) {
-            case Gravity::top_left:
-            case Gravity::top_center:
-            case Gravity::top_right: y = margin.y; break;
-            case Gravity::center_left:
-            case Gravity::center_center:
-            case Gravity::center_right: y = (parentSize.y-size.y)/2.0f; break;
-            case Gravity::bottom_left:
-            case Gravity::bottom_center:
-            case Gravity::bottom_right: y = parentSize.y-size.y-margin.w; break;
+            case Gravity::TOP_LEFT:
+            case Gravity::TOP_CENTER:
+            case Gravity::TOP_RIGHT: y = margin.y; break;
+            case Gravity::CENTER_LEFT:
+            case Gravity::CENTER_CENTER:
+            case Gravity::CENTER_RIGHT: y = (parentSize.y-size.y)/2.0f; break;
+            case Gravity::BOTTOM_LEFT:
+            case Gravity::BOTTOM_CENTER:
+            case Gravity::BOTTOM_RIGHT: y = parentSize.y-size.y-margin.w; break;
             default: break;
         }
         return glm::vec2(x, y);

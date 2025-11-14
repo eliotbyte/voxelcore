@@ -50,24 +50,24 @@ namespace gui {
     using StringCallbacksSet = CallbacksSet<GUI&, const std::string&>;
     
     enum class Align {
-        left, center, right,
-        top=left, bottom=right,
+        LEFT, CENTER, RIGHT,
+        TOP=LEFT, BOTTOM=RIGHT,
     };
 
     enum class Gravity {
-        none,
+        NONE,
         
-        top_left,
-        top_center,
-        top_right,
+        TOP_LEFT,
+        TOP_CENTER,
+        TOP_RIGHT,
 
-        center_left,
-        center_center,
-        center_right,
+        CENTER_LEFT,
+        CENTER_CENTER,
+        CENTER_RIGHT,
 
-        bottom_left,
-        bottom_center,
-        bottom_right
+        BOTTOM_LEFT,
+        BOTTOM_CENTER,
+        BOTTOM_RIGHT
     };
 
     /// @brief Base abstract class for all UI elements
@@ -112,7 +112,7 @@ namespace gui {
         /// @brief z-index property specifies the stack order of an element
         int zindex = 0;
         /// @brief element content alignment (supported by Label only)
-        Align align = Align::left;
+        Align align = Align::LEFT;
         /// @brief parent element
         UINode* parent = nullptr;
         /// @brief position supplier for the element (called on parent element size update)

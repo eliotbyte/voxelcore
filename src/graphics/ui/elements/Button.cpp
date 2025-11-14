@@ -47,7 +47,7 @@ Button::Button(
     setScrollable(false);
 
     label = std::make_shared<Label>(gui, text);
-    label->setAlign(Align::center);
+    label->setAlign(Align::CENTER);
     label->setSize(getContentSize());
     label->setInteractive(false);
     add(label);
@@ -95,5 +95,5 @@ Align Button::getTextAlign() const {
     if (label) {
         return label->getAlign();
     }
-    return Align::left;
+    return Align::LEFT;
 }
