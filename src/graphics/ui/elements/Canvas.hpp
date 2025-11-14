@@ -15,7 +15,7 @@ namespace gui {
 
         void draw(const DrawContext& pctx, const Assets& assets) override;
 
-        void setSize(glm::vec2 size) override;
+        void setSize(const glm::vec2& size) override;
 
         [[nodiscard]] auto getTexture() const {
             return texture;
