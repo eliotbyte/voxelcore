@@ -74,7 +74,6 @@ namespace gui {
 
         size_t normalizeIndex(int index);
 
-        int calcIndexAt(int x, int y) const;
         void setTextOffset(uint x);
         bool eraseSelected();
         void resetSelection();
@@ -185,6 +184,9 @@ namespace gui {
         /// @param line target line
         /// @return line position in text
         virtual size_t getLinePos(uint line) const;
+
+        int calcIndexAt(int x, int y) const;
+        int getLineYOffset(int line) const;
 
         /// @brief Check text with validator set with setTextValidator
         /// @return true if text is valid
