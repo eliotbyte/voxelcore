@@ -40,6 +40,8 @@ namespace network {
         int port,
         const ServerDatagramCallback& handler
     );
+
+    int find_free_port();
 }
 
 
@@ -88,6 +90,10 @@ Server* Network::getServer(u64id_t id, bool includePrivate) const {
         return nullptr;
     }
     return found->second.get();
+}
+
+int Network::findFreePort() const {
+    return find_free_port();
 }
 
 u64id_t Network::connectTcp(
