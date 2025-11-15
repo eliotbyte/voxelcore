@@ -573,6 +573,11 @@ static std::shared_ptr<UINode> read_text_box(
     if (element.has("line-numbers")) {
         textbox->setShowLineNumbers(element.attr("line-numbers").asBool());
     }
+    if (element.has("keep-line-selection")) {
+        textbox->setKeepLineSelection(
+            element.attr("keep-line-selection").asBool()
+        );
+    }
     if (element.has("markup")) {
         textbox->setMarkup(element.attr("markup").getText());
     }

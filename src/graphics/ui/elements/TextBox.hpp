@@ -62,6 +62,7 @@ namespace gui {
         bool editable = true;
         bool autoresize = false;
         bool showLineNumbers = false;
+        bool keepLineSelection = false;
         std::string markup;
         std::string syntax;
 
@@ -221,6 +222,9 @@ namespace gui {
 
         size_t getSelectionStart() const;
         size_t getSelectionEnd() const;
+
+        void setKeepLineSelection(bool flag);
+        bool isKeepLineSelection() const;
 
         /// @brief Set runnable called on textbox focus
         virtual void setOnEditStart(runnable oneditstart);
