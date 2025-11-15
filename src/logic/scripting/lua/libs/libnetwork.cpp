@@ -409,6 +409,10 @@ static int l_get_total_download(lua::State* L, network::Network& network) {
     return lua::pushinteger(L, network.getTotalDownload());
 }
 
+static int l_find_free_port(lua::State* L, network::Network& network) {
+    return lua::pushinteger(L, network.findFreePort());
+}
+
 static int l_set_nodelay(lua::State* L, network::Network& network) {
     u64id_t id = lua::tointeger(L, 1);
     bool noDelay = lua::toboolean(L, 2);
@@ -534,6 +538,7 @@ const luaL_Reg networklib[] = {
     {"__post", wrap<l_post>},
     {"get_total_upload", wrap<l_get_total_upload>},
     {"get_total_download", wrap<l_get_total_download>},
+    {"find_free_port", wrap<l_find_free_port>},
     {"__pull_events", wrap<l_pull_events>},
     {"__open_tcp", wrap<l_open_tcp>},
     {"__open_udp", wrap<l_open_udp>},

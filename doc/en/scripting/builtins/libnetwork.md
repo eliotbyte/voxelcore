@@ -132,3 +132,10 @@ network.get_total_upload() --> int
 -- in bytes.
 network.get_total_download() --> int
 ```
+
+## Other
+
+```lua
+-- Looks for a free port to use.
+network.find_free_port() --> int
+```

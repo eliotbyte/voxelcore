@@ -443,6 +443,7 @@ public:
             closesocket(descriptor);
             throw std::runtime_error("could not bind port "+std::to_string(port));
         }
+        port = ntohs(address.sin_port);
         logger.info() << "opened server at port " << port;
         auto server =
             std::make_shared<SocketTcpServer>(id, network, descriptor, port);
@@ -720,5 +721,25 @@ namespace network {
         const ServerDatagramCallback& handler
     ) {
         return SocketUdpServer::openServer(id, network, port, handler);
+    }
+
+    int find_free_port() {
+        SOCKET descriptor = socket(AF_INET, SOCK_STREAM, 0);
+        if (descriptor == -1) {
+            return -1;
+        }
+        sockaddr_in address;
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = 0;
+        if (bind(descriptor, (sockaddr*)&address, sizeof(address)) < 0) {
+            closesocket(descriptor);
+            return -1;
+        }
+        socklen_t len = sizeof(address);
+        getsockname(descriptor, (sockaddr*)&address, &len);
+        int port = ntohs(address.sin_port);
+        closesocket(descriptor);
+        return port;
     }
 }
