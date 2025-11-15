@@ -202,5 +202,5 @@ network.get_total_download() --> int
 
 ```lua
 -- Ищет свободный для использования порт.
-network.find_free_port() --> int
+network.find_free_port() --> int или nil
 ```
