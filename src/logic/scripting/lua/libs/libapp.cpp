@@ -5,6 +5,7 @@
 #include "engine/EnginePaths.hpp"
 #include "network/Network.hpp"
 #include "util/platform.hpp"
+#include "window/Window.hpp"
 
 using namespace scripting;
 
@@ -27,8 +28,14 @@ static int l_start_debug_instance(lua::State* L) {
     return lua::pushinteger(L, port);
 }
 
+static int l_focus(lua::State* L) {
+    engine->getWindow().focus();
+    return 0;
+}
+
 const luaL_Reg applib[] = {
     {"start_debug_instance", lua::wrap<l_start_debug_instance>},
+    {"focus", lua::wrap<l_focus>},
     // for other functions see libcore.cpp and stdlib.lua
     {nullptr, nullptr}
 };

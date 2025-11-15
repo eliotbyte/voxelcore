@@ -468,6 +468,10 @@ public:
         return mode;
     }
 
+    void focus() override {
+        glfwFocusWindow(window);
+    }
+
     void setTitle(const std::string& title) override {
         glfwSetWindowTitle(window, title.c_str());
     }
