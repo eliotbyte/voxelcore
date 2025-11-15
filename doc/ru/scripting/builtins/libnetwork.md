@@ -197,3 +197,10 @@ network.get_total_upload() --> int
 -- в байтах.
 network.get_total_download() --> int
 ```
+
+## Другое
+
+```lua
+-- Ищет свободный для использования порт.
+network.find_free_port() --> int
+```
