@@ -683,7 +683,7 @@ int TextBox::calcIndexAt(int x, int y) const {
 
 int TextBox::getLineYOffset(int line) const {
     if (rawTextCache.fontId == 0) return 0;
-    return label->getLineYOffset(line) + getContentOffset().y;
+    return label->getLineYOffset(line);
 }
 
 static inline std::wstring get_alphabet(wchar_t c) {
