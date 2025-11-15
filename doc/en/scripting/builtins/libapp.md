@@ -158,3 +158,9 @@ app.get_setting_info(name: str) -> {
 ```
 
 Returns a table with information about a setting. Throws an exception if the setting does not exist.
+
+```lua
+app.focus()
+```
+
+Brings the window to front and sets input focus.
