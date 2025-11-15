@@ -70,6 +70,7 @@ local DatagramServerSocket = {__index={
 
 local _tcp_server_callbacks = {}
 local _tcp_client_callbacks = {}
+local _tcp_client_error_callbacks = {}
 
 local _udp_server_callbacks = {}
 local _udp_client_datagram_callbacks = {}
@@ -116,10 +117,13 @@ network.tcp_open = function (port, handler)
     return socket
 end
 
-network.tcp_connect = function(address, port, callback)
+network.tcp_connect = function(address, port, callback, errorCallback)
     local socket = setmetatable({id=0}, Socket)
     socket.id = network.__connect_tcp(address, port)
     _tcp_client_callbacks[socket.id] = function() callback(socket) end
+    if errorCallback then
+        _tcp_client_error_callbacks[socket.id] = function(message) errorCallback(socket, message) end
+    end
     return socket
 end
 
@@ -239,6 +243,7 @@ network.__process_events = function()
     local CONNECTED_TO_SERVER = 2
     local DATAGRAM = 3
     local RESPONSE = 4
+    local CONNECTION_ERROR = 5
 
     local ON_SERVER = 1
     local ON_CLIENT = 2
@@ -257,6 +262,11 @@ network.__process_events = function()
             local callback = _tcp_client_callbacks[cid] or _udp_client_open_callbacks[cid]
             if callback then
                 callback()
+            end
+        elseif etype == CONNECTION_ERROR then
+            local callback = _tcp_client_error_callbacks[cid]
+            if callback then
+                callback(addr)
             end
         elseif etype == DATAGRAM then
             if side == ON_CLIENT then

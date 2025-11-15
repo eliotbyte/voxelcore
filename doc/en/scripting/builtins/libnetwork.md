@@ -57,7 +57,10 @@ network.tcp_connect(
     -- Function called upon successful connection
     -- Sending will not work before connection
     -- Socket is passed as the only argument
-    callback: function(Socket)
+    callback: function(Socket),
+    -- Function called when a connection error occurs
+    -- Arguments passed: socket and error text
+    [optional] error_callback: function(Socket, str)
 ) --> Socket
 ```
 
