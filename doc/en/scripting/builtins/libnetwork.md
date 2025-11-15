@@ -82,6 +82,16 @@ socket:recv(
 -- Returns nil on error (socket is closed or does not exist).
 -- If there is no data yet, returns an empty byte array.
 
+-- Asynchronous version for use in coroutines.
+-- Waits for the entire specified number of bytes to be received.
+-- If socket closes, function works like socket:recv
+socket:recv_async(
+    -- Size of the byte array to read
+    length: int,
+    -- Use table instead of Bytearray
+    [optional] usetable: bool=false
+) -> nil|table|Bytearray
+
 -- Closes the connection
 socket:close()
 
