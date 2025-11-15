@@ -173,7 +173,7 @@ static int l_get_line_at(lua::State* L) {
     auto node = get_document_node(L, 1);
     auto position = lua::tointeger(L, 2);
     if (auto box = dynamic_cast<TextBox*>(node.node.get())) {
-        return lua::pushinteger(L, box->getLineAt(position));
+        return lua::pushinteger(L, box->getLineAt(position) + 1);
     }
     return 0;
 }
@@ -191,7 +191,7 @@ static int l_get_line_y(lua::State* L) {
     auto node = get_document_node(L, 1);
     auto line = lua::tointeger(L, 2);
     if (auto box = dynamic_cast<TextBox*>(node.node.get())) {
-        return lua::pushinteger(L, box->getLineYOffset(line));
+        return lua::pushinteger(L, box->getLineYOffset(line - 1));
     }
     return 0;
 }
