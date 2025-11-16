@@ -158,3 +158,13 @@ app.get_setting_info(name: str) -> {
 ```
 
 Returns a table with information about a setting. Throws an exception if the setting does not exist.
+
+
+```lua
+app.create_memory_device(
+    -- entry-point name
+    name: str
+)
+```
+
+Creates an in-memory filesystem.

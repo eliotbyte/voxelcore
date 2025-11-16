@@ -58,6 +58,7 @@ public:
     void unmount(const std::string& name);
 
     std::string createWriteableDevice(const std::string& name);
+    std::string createMemoryDevice();
 
     void setEntryPoints(std::vector<PathsRoot> entryPoints);
 
