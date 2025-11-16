@@ -221,6 +221,16 @@ static int l_unmount(lua::State* L) {
     return 0;
 }
 
+static int l_create_memory_device(lua::State* L) {
+    if (lua::isstring(L, 1)) {
+        throw std::runtime_error(
+            "name must not be specified, use app.create_memory_device instead"
+        );
+    }
+    auto& paths = engine->getPaths();
+    return lua::pushstring(L, paths.createMemoryDevice());
+}
+
 static int l_create_zip(lua::State* L) {
     io::path folder = lua::require_string(L, 1);
     io::path outFile = lua::require_string(L, 2);
@@ -336,7 +346,6 @@ static int l_write_descriptor(lua::State* L) {
     if (!stream->good()) {
         throw std::runtime_error("failed to write to stream");
     }
-
     return 0;
 }
 
@@ -352,7 +361,6 @@ static int l_flush_descriptor(lua::State* L) {
     }
 
     scripting::descriptors_manager::flush(descriptor);
-
     return 0;
 }
 
@@ -364,13 +372,11 @@ static int l_close_descriptor(lua::State* L) {
     }
 
     scripting::descriptors_manager::close(descriptor);
-
     return 0;
 }
 
 static int l_close_all_descriptors(lua::State* L) {
     scripting::descriptors_manager::close_all_descriptors();
-
     return 0;
 }
 
@@ -396,6 +402,7 @@ const luaL_Reg filelib[] = {
     {"is_writeable", lua::wrap<l_is_writeable>},
     {"mount", lua::wrap<l_mount>},
     {"unmount", lua::wrap<l_unmount>},
+    {"create_memory_device", lua::wrap<l_create_memory_device>},
     {"create_zip", lua::wrap<l_create_zip>},
     {"__open_descriptor", lua::wrap<l_open_descriptor>},
     {"__has_descriptor", lua::wrap<l_has_descriptor>},

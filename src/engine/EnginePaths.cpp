@@ -2,6 +2,7 @@
 
 #include "debug/Logger.hpp"
 #include "io/devices/StdfsDevice.hpp"
+#include "io/devices/MemoryDevice.hpp"
 #include "io/devices/ZipFileDevice.hpp"
 #include "maths/util.hpp"
 #include "typedefs.hpp"
@@ -166,6 +167,18 @@ void EnginePaths::unmount(const std::string& name) {
     }
     io::remove_device(name);
     mounted.erase(found);
+}
+
+std::string EnginePaths::createMemoryDevice() {
+    auto device = std::make_unique<io::MemoryDevice>();
+        std::string name;
+    do {
+        name = std::string("M.") + generate_random_base64<6>();
+    } while (std::find(mounted.begin(), mounted.end(), name) != mounted.end());
+    
+    io::set_device(name, std::move(device));
+    mounted.push_back(name);
+    return name;
 }
 
 std::string EnginePaths::createWriteableDevice(const std::string& name) {
