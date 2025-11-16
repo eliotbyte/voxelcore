@@ -1,5 +1,7 @@
 #include "api_lua.hpp"
 
+#include "io/io.hpp"
+#include "io/devices/MemoryDevice.hpp"
 #include "logic/scripting/scripting.hpp"
 #include "engine/Engine.hpp"
 #include "engine/EnginePaths.hpp"
@@ -33,9 +35,25 @@ static int l_focus(lua::State* L) {
     return 0;
 }
 
+static int l_create_memory_device(lua::State* L) {
+    std::string name = lua::require_string(L, 1);
+    if (io::get_device(name)) {
+        throw std::runtime_error(
+            "entry-point '" + name + "' is already used"
+        );
+    }
+    if (name.find(':') != std::string::npos) {
+        throw std::runtime_error("invalid entry point name");
+    }
+    
+    io::set_device(name, std::make_unique<io::MemoryDevice>());
+    return 0;
+}
+
 const luaL_Reg applib[] = {
     {"start_debug_instance", lua::wrap<l_start_debug_instance>},
     {"focus", lua::wrap<l_focus>},
+    {"create_memory_device", lua::wrap<l_create_memory_device>},
     // for other functions see libcore.cpp and stdlib.lua
     {nullptr, nullptr}
 };

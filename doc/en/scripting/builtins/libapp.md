@@ -164,3 +164,12 @@ app.focus()
 ```
 
 Brings the window to front and sets input focus.
+
+```lua
+app.create_memory_device(
+    -- entry-point name
+    name: str
+)
+```
+
+Creates an in-memory filesystem.
