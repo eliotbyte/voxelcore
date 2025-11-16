@@ -60,7 +60,9 @@ if is_debugging then
         current_func = _debug_getinfo(2).func
         current_func_stack_size = calc_stack_size()
         __pause("breakpoint")
-        debug.pull_events()
+        while debug.pull_events() do
+            __pause()
+        end
     end, "lr")
 end
 
@@ -92,6 +94,7 @@ function debug.pull_events()
     if not events then
         return
     end
+    local keepPaused = false
     for i, event in ipairs(events) do
         if event[1] == DBG_EVENT_SET_BREAKPOINT then
             debug.set_breakpoint(event[2], event[3])
@@ -116,9 +119,10 @@ function debug.pull_events()
                 value = value[key]
             end
             __sendvalue(value, event[2], event[3], event[4])
-            __pause()
+            keepPaused = true
         end
     end
+    return keepPaused
 end
 
 function debug.set_breakpoint(source, line)
