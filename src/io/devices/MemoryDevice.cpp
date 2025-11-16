@@ -139,7 +139,8 @@ uint64_t io::MemoryDevice::removeAll(std::string_view path) {
     uint64_t count = 0;
     if (found->second.holds_alternative<Dir>()) {
         auto dir = found->second.get_if<Dir>();
-        for (const auto& name : dir->content) {
+        auto files = dir->content;
+        for (const auto& name : files) {
             io::path subPath = filePath / name;
             count += removeAll(subPath.string());
         }
