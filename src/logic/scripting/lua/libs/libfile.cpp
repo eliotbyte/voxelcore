@@ -5,6 +5,7 @@
 #include "engine/Engine.hpp"
 #include "engine/EnginePaths.hpp"
 #include "io/io.hpp"
+#include "io/devices/MemoryDevice.hpp"
 #include "io/devices/ZipFileDevice.hpp"
 #include "util/stringutil.hpp"
 #include "api_lua.hpp"
@@ -47,6 +48,14 @@ static bool is_writeable(const std::string& entryPoint) {
         return false;
     }
     if (entryPoint.substr(0, 2) == "W.") {
+        return true;
+    }
+    // todo: do better
+    auto device = io::get_device(entryPoint);
+    if (device == nullptr) {
+        return false;
+    }
+    if (dynamic_cast<io::MemoryDevice*>(device.get())) {
         return true;
     }
     if (writeable_entry_points.find(entryPoint) != writeable_entry_points.end()) {

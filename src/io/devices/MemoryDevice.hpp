@@ -62,6 +62,7 @@ namespace io {
         std::unique_ptr<PathsGenerator> list(std::string_view path) override;
     private:
         std::unordered_map<std::string, Node> nodes;
+        Dir rootDir {};
 
         Node* createFile(std::string path, util::Buffer<char>&& content);
         Dir* createDir(std::string path);

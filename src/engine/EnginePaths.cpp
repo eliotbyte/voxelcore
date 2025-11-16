@@ -173,7 +173,7 @@ std::string EnginePaths::createMemoryDevice() {
     auto device = std::make_unique<io::MemoryDevice>();
         std::string name;
     do {
-        name = std::string("M.") + generate_random_base64<6>();
+        name = std::string("W.") + generate_random_base64<6>();
     } while (std::find(mounted.begin(), mounted.end(), name) != mounted.end());
     
     io::set_device(name, std::move(device));
