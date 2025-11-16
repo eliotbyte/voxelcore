@@ -18,6 +18,7 @@ assert(file.isdir("config:dir"))
 
 debug.log("remove directory")
 file.remove("config:dir")
+assert(not file.isdir("config:dir"))
 
 debug.log("create directories")
 file.mkdirs("config:dir/subdir/other")
