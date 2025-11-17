@@ -41,7 +41,7 @@ static int l_set_content_sources(lua::State* L) {
     std::vector<io::path> sources;
     for (int i = 0; i < len; i++) {
         lua::rawgeti(L, i + 1);
-        sources.emplace_back(lua::require_lstring(L, -1));
+        sources.emplace_back(std::string(lua::require_lstring(L, -1)));
         lua::pop(L);
     }
     engine->getContentControl().setContentSources(std::move(sources));
