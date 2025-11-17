@@ -16,6 +16,13 @@ static void load_configs(Input& input, const io::path& root) {
     auto configFolder = root / "config";
 }
 
+static std::vector<io::path> default_content_sources {
+    "world:content",
+    "user:content",
+    "project:content",
+    "res:content",
+};
+
 ContentControl::ContentControl(
     const Project& project,
     EnginePaths& paths,
@@ -27,12 +34,7 @@ ContentControl::ContentControl(
       postContent(std::move(postContent)),
       basePacks(project.basePacks),
       manager(std::make_unique<PacksManager>()) {
-    manager->setSources({
-        "world:content",
-        "user:content",
-        "project:content",
-        "res:content",
-    });
+    manager->setSources(default_content_sources);
 }
 
 ContentControl::~ContentControl() = default;
@@ -68,6 +70,7 @@ void ContentControl::resetContent(const std::vector<std::string>& nonReset) {
     scripting::on_content_reset();
 
     setContentPacksRaw(manager->getAll(basePacks));
+    resetContentSources();
 
     postContent();
 }
@@ -138,4 +141,16 @@ const std::vector<ContentPack>& ContentControl::getAllContentPacks() const {
 PacksManager& ContentControl::scan() {
     manager->scan();
     return *manager;
+}
+
+void ContentControl::setContentSources(std::vector<io::path> sources) {
+    manager->setSources(std::move(sources));
+}
+
+void ContentControl::resetContentSources() {
+    manager->setSources(default_content_sources);
+}
+
+const std::vector<io::path>& ContentControl::getContentSources() const {
+    return manager->getSources();
 }
