@@ -14,12 +14,12 @@ std::vector<BlockRegisterEvent> blocks_agent::pull_register_events() {
     return events;
 }
 
-static uint16_t get_events_bits(bool present, const Block& def) {
-    uint16_t bits = 0;
-    if (def.rt.funcsset.onblocktick) {
-        bits |= present ? BlockRegisterEvent::REGISTER_UPDATING_BIT
-                        : BlockRegisterEvent::UNREGISTER_UPDATING_BIT;
-    }
+static uint8_t get_events_bits(bool reg, const Block& def) {
+    uint8_t bits = 0;
+    auto funcsset = def.rt.funcsset;
+    bits |= BlockRegisterEvent::REGISTER_BIT * reg;
+    bits |= BlockRegisterEvent::UPDATING_BIT * funcsset.onblocktick;
+    bits |= BlockRegisterEvent::PRESENT_EVENT_BIT * funcsset.onblockpresent;
     return bits;
 }
 
@@ -28,10 +28,16 @@ static void on_chunk_register_event(
     const Chunk& chunk,
     bool present
 ) {
-    for (int i = 0; i < CHUNK_VOL; i++) {
-        const auto& def =
-            indices.blocks.require(chunk.voxels[i].id);
-        uint16_t bits = get_events_bits(present, def);
+    const auto& voxels = chunk.voxels;
+
+    int totalBegin = chunk.bottom * (CHUNK_W * CHUNK_D);
+    int totalEnd = chunk.top * (CHUNK_W * CHUNK_D);
+
+    for (int i = totalBegin; i <= totalEnd; i++) {
+        blockid_t id = voxels[i].id;
+        const auto& def = 
+            indices.blocks.require(id);
+        uint8_t bits = get_events_bits(present, def);
         if (bits == 0) {
             continue;
         }
@@ -39,7 +45,7 @@ static void on_chunk_register_event(
         int z = (i / CHUNK_W) % CHUNK_D + chunk.z * CHUNK_D;
         int y = (i / CHUNK_W / CHUNK_D);
         block_register_events.push_back(BlockRegisterEvent {
-            bits, def.rt.id, {x, y, z}
+            bits, id, {x, y, z}
         });
     }
 }
@@ -109,7 +115,7 @@ static void finalize_block(
         }
     }
 
-    uint16_t bits = get_events_bits(false, def);
+    uint8_t bits = get_events_bits(false, def);
     if (bits == 0) {
         return;
     }
@@ -141,7 +147,7 @@ static void initialize_block(
     refresh_chunk_heights(chunk, id == BLOCK_AIR, y);
     mark_neighboirs_modified(chunks, cx, cz, lx, lz);
 
-    uint16_t bits = get_events_bits(true, def);
+    uint8_t bits = get_events_bits(true, def);
     if (bits == 0) {
         return;
     }

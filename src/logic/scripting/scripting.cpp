@@ -675,6 +675,8 @@ void scripting::load_content_script(
         register_event(env, "on_block_tick", prefix + ".blocktick");
     funcsset.onblockstick =
         register_event(env, "on_blocks_tick", prefix + ".blockstick");
+    funcsset.onblockpresent =
+        register_event(env, "on_block_present", prefix + ".blockpresent");
 }
 
 void scripting::load_content_script(

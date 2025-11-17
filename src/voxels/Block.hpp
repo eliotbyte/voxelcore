@@ -50,6 +50,7 @@ struct BlockFuncsSet {
     bool randupdate : 1;
     bool onblocktick : 1;
     bool onblockstick : 1;
+    bool onblockpresent : 1;
 };
 
 struct CoordSystem {

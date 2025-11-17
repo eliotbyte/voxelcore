@@ -127,8 +127,6 @@ std::shared_ptr<Chunk> GlobalChunks::create(int x, int z) {
         chunk->flags.loadedLights = true;
     }
     chunk->blocksMetadata = regions.getBlocksData(chunk->x, chunk->z);
-
-    level.events->trigger(LevelEventType::CHUNK_PRESENT, chunk.get());
     return chunk;
 }
 
