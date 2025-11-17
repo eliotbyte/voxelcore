@@ -34,6 +34,21 @@ static int l_get_content_sources(lua::State* L) {
 }
 
 static int l_set_content_sources(lua::State* L) {
+    if (!lua::istable(L, 1)) {
+        throw std::runtime_error("table expected as argument 1");
+    }
+    int len = lua::objlen(L, 1);
+    std::vector<io::path> sources;
+    for (int i = 0; i < len; i++) {
+        lua::rawgeti(L, i + 1);
+        sources.emplace_back(lua::require_lstring(L, -1));
+        lua::pop(L);
+    }
+    engine->getContentControl().setContentSources(std::move(sources));
+    return 0;
+}
+
+static int l_reset_content_sources(lua::State* L) {
     engine->getContentControl().resetContentSources();
     return 0;
 }
@@ -42,6 +57,7 @@ const luaL_Reg applib[] = {
     {"create_memory_device", lua::wrap<l_create_memory_device>},
     {"get_content_sources", lua::wrap<l_get_content_sources>},
     {"set_content_sources", lua::wrap<l_set_content_sources>},
+    {"reset_content_sources", lua::wrap<l_reset_content_sources>},
     // see libcore.cpp an stdlib.lua
     {nullptr, nullptr}
 };
