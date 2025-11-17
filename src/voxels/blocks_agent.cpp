@@ -14,10 +14,9 @@ std::vector<BlockRegisterEvent> blocks_agent::pull_register_events() {
     return events;
 }
 
-static uint8_t get_events_bits(bool reg, const Block& def) {
+static uint8_t get_events_bits(const Block& def) {
     uint8_t bits = 0;
     auto funcsset = def.rt.funcsset;
-    bits |= BlockRegisterEvent::REGISTER_BIT * reg;
     bits |= BlockRegisterEvent::UPDATING_BIT * funcsset.onblocktick;
     bits |= BlockRegisterEvent::PRESENT_EVENT_BIT * funcsset.onblockpresent;
     return bits;
@@ -33,11 +32,17 @@ static void on_chunk_register_event(
     int totalBegin = chunk.bottom * (CHUNK_W * CHUNK_D);
     int totalEnd = chunk.top * (CHUNK_W * CHUNK_D);
 
+    uint8_t flagsCache[1024] {};
+
     for (int i = totalBegin; i <= totalEnd; i++) {
         blockid_t id = voxels[i].id;
-        const auto& def = 
-            indices.blocks.require(id);
-        uint8_t bits = get_events_bits(present, def);
+        uint8_t bits = id < sizeof(flagsCache) ? flagsCache[id] : 0;
+        if ((bits & 0x80) == 0) {
+            const auto& def = indices.blocks.require(id);
+            bits = get_events_bits(def);
+            flagsCache[id] = bits | 0x80;
+        }
+        bits &= 0x7F;
         if (bits == 0) {
             continue;
         }
@@ -45,7 +50,7 @@ static void on_chunk_register_event(
         int z = (i / CHUNK_W) % CHUNK_D + chunk.z * CHUNK_D;
         int y = (i / CHUNK_W / CHUNK_D);
         block_register_events.push_back(BlockRegisterEvent {
-            bits, id, {x, y, z}
+            static_cast<uint8_t>(bits | (present ? 1 : 0)), id, {x, y, z}
         });
     }
 }
@@ -115,7 +120,7 @@ static void finalize_block(
         }
     }
 
-    uint8_t bits = get_events_bits(false, def);
+    uint8_t bits = get_events_bits(def);
     if (bits == 0) {
         return;
     }
@@ -147,12 +152,12 @@ static void initialize_block(
     refresh_chunk_heights(chunk, id == BLOCK_AIR, y);
     mark_neighboirs_modified(chunks, cx, cz, lx, lz);
 
-    uint8_t bits = get_events_bits(true, def);
+    uint8_t bits = get_events_bits(def);
     if (bits == 0) {
         return;
     }
     block_register_events.push_back(BlockRegisterEvent {
-        bits, def.rt.id, {x, y, z}
+        static_cast<uint8_t>(bits | 1), def.rt.id, {x, y, z}
     });
 
     if (def.rt.funcsset.onblocktick) {
