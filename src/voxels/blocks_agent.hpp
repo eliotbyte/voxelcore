@@ -25,11 +25,10 @@ struct AABB;
 namespace blocks_agent {
 
 struct BlockRegisterEvent {
-    enum class Type : uint16_t {
-        REGISTER_UPDATING,
-        UNREGISTER_UPDATING,
-    };
-    Type type;
+    static inline constexpr uint16_t REGISTER_UPDATING_BIT = 0x1;
+    static inline constexpr uint16_t UNREGISTER_UPDATING_BIT = 0x2;
+    static inline constexpr uint16_t PRESENT_EVENT_BIT = 0x4;
+    uint16_t bits;
     blockid_t id;
     glm::ivec3 coord;
 };

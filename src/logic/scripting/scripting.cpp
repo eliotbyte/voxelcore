@@ -72,6 +72,7 @@ void scripting::initialize(Engine* engine) {
 
     load_script(io::path("stdlib.lua"), true);
     load_script(io::path("classes.lua"), true);
+    load_script(io::path("internal_events.lua"), true);
 }
 
 class LuaCoroutine : public Process {
