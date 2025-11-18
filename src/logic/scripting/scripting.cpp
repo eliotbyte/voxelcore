@@ -341,6 +341,13 @@ void scripting::on_world_save() {
     }
 }
 
+void scripting::process_before_quit() {
+    auto L = lua::get_main_state();
+    if (lua::getglobal(L, "__vc_process_before_quit")) {
+        lua::call_nothrow(L, 0, 0);
+    }
+}
+
 void scripting::on_world_quit() {
     auto L = lua::get_main_state();
     for (auto& pack : content_control->getAllContentPacks()) {
@@ -677,6 +684,8 @@ void scripting::load_content_script(
         register_event(env, "on_blocks_tick", prefix + ".blockstick");
     funcsset.onblockpresent =
         register_event(env, "on_block_present", prefix + ".blockpresent");
+    funcsset.onblockremoved =
+        register_event(env, "on_block_removed", prefix + ".blockremoved");
 }
 
 void scripting::load_content_script(
