@@ -51,7 +51,7 @@ namespace util {
         void allocateNew() {
             std::unique_ptr<void, AlignedDeleter> ptr(
 #if defined(_WIN32)
-                _aligned_malloc(sizeof(T), alignof(T));
+                _aligned_malloc(sizeof(T), alignof(T))
 #else
                 std::aligned_alloc(alignof(T), sizeof(T))
 #endif
