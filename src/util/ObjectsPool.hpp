@@ -39,6 +39,7 @@ namespace util {
             freeObjects.pop();
             new (ptr)T(std::forward<Args>(args)...);
             return std::shared_ptr<T>(reinterpret_cast<T*>(ptr), [this](T* ptr) {
+                ptr->~T();
                 std::lock_guard lock(mutex);
                 freeObjects.push(ptr);
             });
