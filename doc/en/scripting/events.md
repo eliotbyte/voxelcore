@@ -54,6 +54,15 @@ Called tps (20 / tick-interval) times per second for a block.
 Use 1/tps instead of `time.delta()`.
 
 ```lua
+function on_block_present(x, y, z)
+```
+
+Called for a specific block when it appears in the world (generated/loaded/placed).
+The call occurs within a time period that may depend on the event queue load.
+Under light load, it occurs during the first tick interval of the block.
+on_block_tick is not called until the event is called.
+
+```lua
 function on_player_tick(playerid: int, tps: int)
 ```
 
