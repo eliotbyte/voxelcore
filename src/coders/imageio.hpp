@@ -4,10 +4,20 @@
 #include <string>
 
 #include "io/fwd.hpp"
+#include "util/Buffer.hpp"
+#include "util/EnumMetadata.hpp"
 
 class ImageData;
 
 namespace imageio {
+    enum class ImageFileFormat {
+        PNG
+    };
+
+    VC_ENUM_METADATA(ImageFileFormat)
+        {"png", ImageFileFormat::PNG},
+    VC_ENUM_END
+
     inline const std::string PNG = ".png";
 
     bool is_read_supported(const std::string& extension);
@@ -15,4 +25,5 @@ namespace imageio {
 
     std::unique_ptr<ImageData> read(const io::path& file);
     void write(const io::path& file, const ImageData* image);
+    util::Buffer<unsigned char> encode(ImageFileFormat format, const ImageData& image);
 }

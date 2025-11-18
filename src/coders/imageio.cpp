@@ -53,3 +53,14 @@ void imageio::write(const io::path& file, const ImageData* image) {
     }
     return found->second(io::resolve(file).u8string(), image);
 }
+
+util::Buffer<unsigned char> imageio::encode(
+    ImageFileFormat format, const ImageData& image
+) {
+    switch (format) {
+        case ImageFileFormat::PNG:
+            return png::encode_image(image);
+        default:
+            throw std::runtime_error("file format is not supported for encoding");
+    }
+}

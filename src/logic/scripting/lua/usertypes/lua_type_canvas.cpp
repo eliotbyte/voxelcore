@@ -1,8 +1,10 @@
+#define VC_ENABLE_REFLECTION
 #include "lua_type_canvas.hpp"
 
 #include "graphics/core/ImageData.hpp"
 #include "graphics/core/Texture.hpp"
 #include "logic/scripting/lua/lua_util.hpp"
+#include "coders/imageio.hpp"
 #include "engine/Engine.hpp"
 #include "assets/Assets.hpp"
 
@@ -284,6 +286,23 @@ static int l_sub(State* L) {
     return 0;
 }
 
+static int l_encode(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    auto format = imageio::ImageFileFormat::PNG;
+    if (lua::isstring(L, 2)) {
+        auto name = lua::require_string(L, 2);
+        if (!imageio::ImageFileFormatMeta.getItem(name, format)) {
+            throw std::runtime_error("unsupported image file format");
+        }
+    }
+
+    auto buffer = imageio::encode(format, canvas->getData());
+    return lua::create_bytearray(L, buffer.data(), buffer.size());
+}
+
 static std::unordered_map<std::string, lua_CFunction> methods {
     {"at", lua::wrap<l_at>},
     {"set", lua::wrap<l_set>},
@@ -296,6 +315,7 @@ static std::unordered_map<std::string, lua_CFunction> methods {
     {"mul", lua::wrap<l_mul>},
     {"add", lua::wrap<l_add>},
     {"sub", lua::wrap<l_sub>},
+    {"encode", lua::wrap<l_encode>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
