@@ -4,11 +4,16 @@
 #include <mutex>
 #include <vector>
 #include <queue>
+#include <malloc.h>
 
 namespace util {
     struct AlignedDeleter {
         void operator()(void* p) const {
+#if defined(_WIN32)
+            _aligned_free(p);
+#else
             std::free(p);
+#endif
         }
     };
 
@@ -42,7 +47,11 @@ namespace util {
 
         void allocateNew() {
             std::unique_ptr<void, AlignedDeleter> ptr(
+#if defined(_WIN32)
+                _aligned_malloc(sizeof(T), alignof(T));
+#else
                 std::aligned_alloc(alignof(T), sizeof(T))
+#endif
             );
             freeObjects.push(ptr.get());
             objects.push_back(std::move(ptr));
