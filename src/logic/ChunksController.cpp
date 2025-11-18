@@ -163,11 +163,7 @@ bool ChunksController::buildLights(
     return false;
 }
 
-#include "util/timeutil.hpp"
-
 void ChunksController::createChunk(const Player& player, int x, int z) const {
-    timeutil::ScopeLogTimer log(111);
-
     if (!player.isLoadingChunks()) {
         if (auto chunk = level.chunks->fetch(x, z)) {
             player.chunks->putChunk(chunk);
