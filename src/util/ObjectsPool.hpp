@@ -4,7 +4,10 @@
 #include <mutex>
 #include <vector>
 #include <queue>
+
+#if defined(_WIN32)
 #include <malloc.h>
+#endif
 
 namespace util {
     struct AlignedDeleter {
