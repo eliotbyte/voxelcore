@@ -90,6 +90,9 @@ static inline auto load_inventories(
 }
 
 #include "util/timeutil.hpp"
+#include "util/ObjectsPool.hpp"
+
+static util::ObjectsPool<Chunk> chunks_pool(1'024);
 
 std::shared_ptr<Chunk> GlobalChunks::create(int x, int z) {
     const auto& found = chunksMap.find(keyfrom(x, z));
@@ -100,7 +103,8 @@ std::shared_ptr<Chunk> GlobalChunks::create(int x, int z) {
     std::shared_ptr<Chunk> chunk;
     {
         timeutil::ScopeLogTimer log(555);
-        chunk = std::make_shared<Chunk>(x, z);
+        // chunk = std::make_shared<Chunk>(x, z);
+        chunk = chunks_pool.create(x, z);
     }
     chunksMap[keyfrom(x, z)] = chunk;
 
