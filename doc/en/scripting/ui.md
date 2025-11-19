@@ -201,6 +201,14 @@ Here, *color* can be specified in the following ways:
 | data:mul(*color* or Canvas)                              | multiplies a color by the specified color or canvas     |
 | data:add(*color* or Canvas)                              | adds a color or another canvas to a color               |
 | data:sub(*color* or Canvas)                              | subtracts a color or another canvas to a color          |
+| data:encode(format: str)                                 | encodes image to specified format and returns bytearray |
+
+To decode a byte array into a Canvas, use the static method:
+```lua
+Canvas.decode(data: Bytearray, format: str) -> Canvas
+```
+
+Currently, only png is supported.
 
 ## Inline frame (iframe)
 
