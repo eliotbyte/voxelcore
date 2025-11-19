@@ -6,6 +6,8 @@
 #include "io/fwd.hpp"
 #include "util/Buffer.hpp"
 #include "util/EnumMetadata.hpp"
+#include "util/span.hpp"
+#include "typedefs.hpp"
 
 class ImageData;
 
@@ -25,5 +27,6 @@ namespace imageio {
 
     std::unique_ptr<ImageData> read(const io::path& file);
     void write(const io::path& file, const ImageData* image);
+    std::unique_ptr<ImageData> decode(ImageFileFormat format, util::span<ubyte> src);
     util::Buffer<unsigned char> encode(ImageFileFormat format, const ImageData& image);
 }

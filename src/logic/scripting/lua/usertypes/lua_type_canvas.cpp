@@ -374,6 +374,23 @@ static int l_meta_meta_call(lua::State* L) {
     );
 }
 
+static int l_canvas_decode(lua::State* L) {
+    auto bytes = bytearray_as_string(L, 1);
+    auto formatName = require_lstring(L, 2);
+    imageio::ImageFileFormat format;
+    if (!imageio::ImageFileFormatMeta.getItem(formatName, format)) {
+        throw std::runtime_error("unsupported image format");
+    }
+    return newuserdata<LuaCanvas>(
+        L,
+        nullptr,
+        imageio::decode(
+            format,
+            {reinterpret_cast<const unsigned char*>(bytes.data()), bytes.size()}
+        )
+    );
+}
+
 int LuaCanvas::createMetatable(State* L) {
     createtable(L, 0, 3);
     pushcfunction(L, lua::wrap<l_meta_index>);
@@ -385,5 +402,8 @@ int LuaCanvas::createMetatable(State* L) {
     pushcfunction(L, lua::wrap<l_meta_meta_call>);
     setfield(L, "__call");
     setmetatable(L);
+
+    pushcfunction(L, lua::wrap<l_canvas_decode>);
+    setfield(L, "decode");
     return 1;
 }
