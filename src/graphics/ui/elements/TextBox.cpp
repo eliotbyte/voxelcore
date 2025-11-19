@@ -484,7 +484,7 @@ void TextBox::erase(size_t start, size_t length) {
         setCaret(caret - length);
     }
     auto left = input.substr(0, start);
-    auto right = input.substr(end);
+    auto right = end >= input.length() ? L"" : input.substr(end);
     input = left + right;
 }
 
@@ -1034,11 +1034,11 @@ void TextBox::keyPressed(Keycode key) {
                 resetSelection();
             }
         }
-        if (key == Keycode::Z) {
+        if (editable && key == Keycode::Z) {
             historian->undo();
             refreshSyntax();
         }
-        if (key == Keycode::Y) {
+        if (editable && key == Keycode::Y) {
             historian->redo();
             refreshSyntax();
         }
