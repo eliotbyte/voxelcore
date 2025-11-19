@@ -366,7 +366,9 @@ void EngineController::reconfigPacks(
                 );
             }
         } else {
-            auto world = controller->getLevel()->getWorld();
+            auto level = controller->getLevel();
+            auto world = level->getWorld();
+            controller->processBeforeQuit();
             controller->saveWorld();
 
             auto names = PacksManager::getNames(world->getPacks());

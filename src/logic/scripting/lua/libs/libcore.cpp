@@ -120,6 +120,7 @@ static int l_close_world(lua::State* L) {
     if (controller == nullptr) {
         throw std::runtime_error("no world open");
     }
+    controller->processBeforeQuit();
     bool save_world = lua::toboolean(L, 1);
     if (save_world) {
         controller->saveWorld();

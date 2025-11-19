@@ -358,6 +358,10 @@ function __vc_on_world_tick(tps)
     time.schedules.world:tick(1.0 / tps)
 end
 
+function __vc_process_before_quit()
+    block.__process_register_events()
+end
+
 function __vc_on_world_save()
     local rule_values = {}
     for name, rule in pairs(rules.rules) do

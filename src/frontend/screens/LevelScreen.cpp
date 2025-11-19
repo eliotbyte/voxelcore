@@ -109,6 +109,7 @@ LevelScreen::~LevelScreen() {
     scripting::on_frontend_close();
     // unblock all bindings
     input.getBindings().enableAll();
+    playerController->getPlayer()->chunks->saveAndClear();
     controller->onWorldQuit();
     engine.getPaths().setCurrentWorldFolder("");
 }
@@ -278,5 +279,6 @@ void LevelScreen::onEngineShutdown() {
     if (hud->isInventoryOpen()) {
         hud->closeInventory();
     }
+    controller->processBeforeQuit();
     controller->saveWorld();
 }
