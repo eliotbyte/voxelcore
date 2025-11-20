@@ -75,7 +75,7 @@ namespace gui {
     };
 
     enum class UIAction {
-        CLICK, DOUBLE_CLICK, FOCUS, DEFOCUS
+        CLICK, DOUBLE_CLICK, FOCUS, DEFOCUS, RIGHT_CLICK
     };
 
     using ActionsSet = TaggedCallbacksSet<UIAction, GUI&>;
@@ -214,6 +214,7 @@ namespace gui {
         int getZIndex() const;
 
         virtual void listenClick(OnAction action);
+        virtual void listenRightClick(OnAction action);
         virtual void listenDoubleClick(OnAction action);
         virtual void listenFocus(OnAction action);
         virtual void listenDefocus(OnAction action);
@@ -221,7 +222,7 @@ namespace gui {
         virtual void onFocus();
         virtual void doubleClick(int x, int y);
         virtual void click(int x, int y);
-        virtual void clicked(Mousecode button) {}
+        virtual void clicked(Mousecode button);
         virtual void mouseMove(int x, int y) {};
         virtual void mouseRelease(int x, int y);
         virtual void scrolled(int value);
@@ -266,7 +267,7 @@ namespace gui {
         virtual glm::vec4 calcColor() const;
 
         /// @brief Get inner content offset. Used for scroll
-        virtual glm::vec2 getContentOffset() {return glm::vec2(0.0f);};
+        virtual glm::vec2 getContentOffset() const {return glm::vec2(0.0f);};
         /// @brief Calculate screen position of the element
         virtual glm::vec2 calcPos() const;
         virtual void setPos(const glm::vec2& pos);

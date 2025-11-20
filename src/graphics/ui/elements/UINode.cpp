@@ -68,6 +68,10 @@ void UINode::listenClick(OnAction action) {
     actions.listen(UIAction::CLICK, std::move(action));
 }
 
+void UINode::listenRightClick(OnAction action) {
+    actions.listen(UIAction::RIGHT_CLICK, std::move(action));
+}
+
 void UINode::listenDoubleClick(OnAction action) {
     actions.listen(UIAction::DOUBLE_CLICK, std::move(action));
 }
@@ -82,6 +86,12 @@ void UINode::listenDefocus(OnAction action) {
 
 void UINode::click(int, int) {
     pressed = true;
+}
+
+void UINode::clicked(Mousecode button) {
+    if (button == Mousecode::BUTTON_2) {
+        actions.notify(UIAction::RIGHT_CLICK, gui);
+    }
 }
 
 void UINode::doubleClick(int x, int y) {

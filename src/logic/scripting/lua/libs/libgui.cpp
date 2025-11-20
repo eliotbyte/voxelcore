@@ -173,7 +173,25 @@ static int l_get_line_at(lua::State* L) {
     auto node = get_document_node(L, 1);
     auto position = lua::tointeger(L, 2);
     if (auto box = dynamic_cast<TextBox*>(node.node.get())) {
-        return lua::pushinteger(L, box->getLineAt(position));
+        return lua::pushinteger(L, box->getLineAt(position) + 1);
+    }
+    return 0;
+}
+
+static int l_get_index_by_pos(lua::State* L) {
+    auto node = get_document_node(L, 1);
+    auto position = lua::tovec2(L, 2);
+    if (auto box = dynamic_cast<TextBox*>(node.node.get())) {
+        return lua::pushinteger(L, box->calcIndexAt(position.x, position.y));
+    }
+    return 0;
+}
+
+static int l_get_line_y(lua::State* L) {
+    auto node = get_document_node(L, 1);
+    auto line = lua::tointeger(L, 2);
+    if (auto box = dynamic_cast<TextBox*>(node.node.get())) {
+        return lua::pushinteger(L, box->getLineYOffset(line - 1));
     }
     return 0;
 }
@@ -509,6 +527,12 @@ static int p_get_focused(UINode* node, lua::State* L) {
 static int p_get_line_at(UINode*, lua::State* L) {
     return lua::pushcfunction(L, l_get_line_at);
 }
+static int p_get_index_by_pos(UINode*, lua::State* L) {
+    return lua::pushcfunction(L, l_get_index_by_pos);
+}
+static int p_get_line_y(UINode*, lua::State* L) {
+    return lua::pushcfunction(L, l_get_line_y);
+}
 static int p_get_line_pos(UINode*, lua::State* L) {
     return lua::pushcfunction(L, l_get_line_pos);
 }
@@ -619,6 +643,8 @@ static int l_gui_getattr(lua::State* L) {
             {"edited", p_get_edited},
             {"lineNumbers", p_get_line_numbers},
             {"lineAt", p_get_line_at},
+            {"indexByPos", p_get_index_by_pos},
+            {"lineY", p_get_line_y},
             {"linePos", p_get_line_pos},
             {"syntax", p_get_syntax},
             {"markup", p_get_markup},

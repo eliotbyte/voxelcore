@@ -39,6 +39,16 @@ end
 local Socket = {__index={
     send=function(self, ...) return network.__send(self.id, ...) end,
     recv=function(self, ...) return network.__recv(self.id, ...) end,
+    recv_async=function(self, length, usetable)
+        while self:is_alive() do
+            local available = self:available()
+            if available >= length then
+                return self:recv(length, usetable)
+            end
+            coroutine.yield()
+        end
+        return self:recv(length, usetable)
+    end,
     close=function(self) return network.__close(self.id) end,
     available=function(self) return network.__available(self.id) or 0 end,
     is_alive=function(self) return network.__is_alive(self.id) end,

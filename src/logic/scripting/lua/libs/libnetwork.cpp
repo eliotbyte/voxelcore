@@ -410,7 +410,11 @@ static int l_get_total_download(lua::State* L, network::Network& network) {
 }
 
 static int l_find_free_port(lua::State* L, network::Network& network) {
-    return lua::pushinteger(L, network.findFreePort());
+    int port = network.findFreePort();
+    if (port == -1) {
+        return 0;
+    }
+    return lua::pushinteger(L, port);
 }
 
 static int l_set_nodelay(lua::State* L, network::Network& network) {

@@ -36,12 +36,11 @@ void InlineFrame::setDocument(const std::shared_ptr<UiDocument>& document) {
 }
 
 void InlineFrame::act(float delta) {
-    Container::act(delta);
-    if (document || src.empty()) {
-        return;
+    if (document == nullptr && !src.empty()) {
+        const auto& assets = *gui.getEngine().getAssets();
+        setDocument(assets.getShared<UiDocument>(src));
     }
-    const auto& assets = *gui.getEngine().getAssets();
-    setDocument(assets.getShared<UiDocument>(src));
+    Container::act(delta);
 }
 
 void InlineFrame::setSize(const glm::vec2& size) {

@@ -93,10 +93,9 @@ void Container::act(float delta) {
             }
         }
     }
-    GUI& gui = this->gui;
     intervalEvents.erase(std::remove_if(
         intervalEvents.begin(), intervalEvents.end(),
-        [&gui](const IntervalEvent& event) {
+        [](const IntervalEvent& event) {
             return event.repeat == 0;
         }
     ), intervalEvents.end());
@@ -177,6 +176,7 @@ void Container::add(const std::shared_ptr<UINode>& node) {
         parent->setMustRefresh();
         parent = parent->getParent();
     }
+    gui.getWindow().setShouldRefresh();
 }
 
 void Container::add(const std::shared_ptr<UINode>& node, glm::vec2 pos) {

@@ -72,6 +72,14 @@ EnginePaths::EnginePaths(CoreParameters& params)
     io::create_subdevice("config", "user", "config");
 }
 
+std::filesystem::path EnginePaths::getResourcesFolder() const {
+    return resourcesFolder;
+}
+
+std::filesystem::path EnginePaths::getUserFilesFolder() const {
+    return userFilesFolder;
+}
+
 io::path EnginePaths::getNewScreenshotFile(const std::string& ext) const {
     auto folder = SCREENSHOTS_FOLDER;
     if (!io::is_directory(folder)) {

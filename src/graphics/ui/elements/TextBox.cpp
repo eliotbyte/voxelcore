@@ -231,7 +231,7 @@ TextBox::~TextBox() = default;
 void TextBox::draw(const DrawContext& pctx, const Assets& assets) {
     Container::draw(pctx, assets);
 
-    if (!isFocused()) {
+    if (!isFocused() && !keepLineSelection) {
         return;
     }
     const auto& labelText = getText();
@@ -252,7 +252,7 @@ void TextBox::draw(const DrawContext& pctx, const Assets& assets) {
 
     float time = gui.getWindow().time();
 
-    if (editable && static_cast<int>((time - caretLastMove) * 2) % 2 == 0) {
+    if (isFocused() && editable && static_cast<int>((time - caretLastMove) * 2) % 2 == 0) {
         uint line = label->getLineByTextIndex(caret);
         uint lcaret = caret - label->getTextLineOffset(line);
         int width = rawTextCache.metrics.calcWidth(input, 0, lcaret);
@@ -308,42 +308,44 @@ void TextBox::draw(const DrawContext& pctx, const Assets& assets) {
         }
     }
 
-    if (isFocused() && multiline) {
-        auto selectionCtx = subctx.sub(batch);
-        selectionCtx.setBlendMode(BlendMode::addition);
-
-        batch->setColor(glm::vec4(1, 1, 1, 0.1f));
-
-        uint line = label->getLineByTextIndex(caret);
-        while (label->isFakeLine(line)) {
-            line--;
-        }
-        do {
-            int lineY = label->getLineYOffset(line);
-
-            batch->setColor(glm::vec4(1, 1, 1, 0.05f));
-            if (showLineNumbers) {
-                batch->rect(
-                    lcoord.x - 8,
-                    lcoord.y + lineY,
-                    label->getSize().x,
-                    lineHeight
-                );
-                batch->setColor(glm::vec4(1, 1, 1, 0.10f));
-                batch->rect(
-                    lcoord.x - LINE_NUMBERS_PANE_WIDTH,
-                    lcoord.y + lineY,
-                    LINE_NUMBERS_PANE_WIDTH - 8,
-                    lineHeight
-                );
-            } else {
-                batch->rect(
-                    lcoord.x, lcoord.y + lineY, label->getSize().x, lineHeight
-                );
-            }
-            line++;
-        } while (line < label->getLinesNumber() && label->isFakeLine(line));
+    if (!multiline) {
+        return;
     }
+
+    auto selectionCtx = subctx.sub(batch);
+    selectionCtx.setBlendMode(BlendMode::addition);
+
+    batch->setColor(glm::vec4(1, 1, 1, 0.1f));
+
+    uint line = label->getLineByTextIndex(caret);
+    while (label->isFakeLine(line)) {
+        line--;
+    }
+    do {
+        int lineY = label->getLineYOffset(line);
+
+        batch->setColor(glm::vec4(1, 1, 1, 0.05f));
+        if (showLineNumbers) {
+            batch->rect(
+                lcoord.x - 8,
+                lcoord.y + lineY,
+                label->getSize().x,
+                lineHeight
+            );
+            batch->setColor(glm::vec4(1, 1, 1, 0.10f));
+            batch->rect(
+                lcoord.x - LINE_NUMBERS_PANE_WIDTH,
+                lcoord.y + lineY,
+                LINE_NUMBERS_PANE_WIDTH - 8,
+                lineHeight
+            );
+        } else {
+            batch->rect(
+                lcoord.x, lcoord.y + lineY, label->getSize().x, lineHeight
+            );
+        }
+        line++;
+    } while (line < label->getLinesNumber() && label->isFakeLine(line));
 }
 
 void TextBox::drawBackground(const DrawContext& pctx, const Assets& assets) {
@@ -605,6 +607,14 @@ size_t TextBox::getSelectionEnd() const {
     return selectionEnd;
 }
 
+void TextBox::setKeepLineSelection(bool flag) {
+    keepLineSelection = flag;
+}
+
+bool TextBox::isKeepLineSelection() const {
+    return keepLineSelection;
+}
+
 void TextBox::setOnEditStart(runnable oneditstart) {
     onEditStart = oneditstart;
 }
@@ -669,6 +679,11 @@ int TextBox::calcIndexAt(int x, int y) const {
     return std::min(
         offset + label->getTextLineOffset(line), labelText.length()
     );
+}
+
+int TextBox::getLineYOffset(int line) const {
+    if (rawTextCache.fontId == 0) return 0;
+    return label->getLineYOffset(line);
 }
 
 static inline std::wstring get_alphabet(wchar_t c) {

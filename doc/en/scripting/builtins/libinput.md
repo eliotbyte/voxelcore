@@ -13,7 +13,16 @@ input.mousecode(mousename: str) --> int
 Returns mouse button code or -1 if unknown
 
 ```lua
-input.add_callback(bindname: str, callback: function)
+input.add_callback(
+    -- Binding name
+    bindname: str,
+    -- Handler
+    callback: function
+    -- UI element that owns the handler (responsible for the handler's lifetime)
+    [optional] owner: Element,
+    -- Ignore input capture by UI elements
+    [optional] istoplevel: bool
+)
 ```
 
 Add binding activation callback. Example:
