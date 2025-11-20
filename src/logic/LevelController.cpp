@@ -123,8 +123,11 @@ void LevelController::update(float delta, bool pause) {
 }
 
 void LevelController::processBeforeQuit() {
-    if (localPlayer) {
-        localPlayer->chunks->saveAndClear();
+    // todo: move somewhere else
+    for (auto player : level->players->getAll()) {
+        if (player->chunks) {
+            player->chunks->saveAndClear();
+        }
     }
     scripting::process_before_quit();
 }
