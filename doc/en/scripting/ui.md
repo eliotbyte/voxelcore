@@ -195,7 +195,8 @@ Here, *color* can be specified in the following ways:
 | data:clear()                                             | clears the canvas                                       |
 | data:clear(*color*)                                      | fills the canvas with the specified RGBA color          |
 | data:update()                                            | applies changes to the canvas and uploads it to the GPU |
-| data:set_data(data: table<int>)                          | replaces pixel data (width * height * 4 numbers)        |
+| data:set_data(data: Bytearray | table<int>)              | replaces pixel data (width * height * 4 numbers)        |
+| data:get_data()                                          | creates a Bytearray object with the image's pixel data  |
 | data:create_texture(name: str)                           | creates and shares texture to renderer                  |
 | data:unbind_texture()                                    | unbinds the texture from the canvas                     |
 | data:mul(*color* or Canvas)                              | multiplies a color by the specified color or canvas     |
