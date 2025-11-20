@@ -93,7 +93,6 @@ void Container::act(float delta) {
             }
         }
     }
-    GUI& gui = this->gui;
     intervalEvents.erase(std::remove_if(
         intervalEvents.begin(), intervalEvents.end(),
         [](const IntervalEvent& event) {
