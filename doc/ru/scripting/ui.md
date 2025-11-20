@@ -195,7 +195,8 @@ document["worlds-panel"]:clear()
 | data:clear()                                             | очищает холст                                                   |
 | data:clear(*цвет*)                                       | заполняет холст указанным RGBA цветом                           |
 | data:update()                                            | применяет изменения и загружает холст в видеопамять             |
-| data:set_data(data: table<int>)                          | заменяет данные пикселей (ширина * высота * 4 чисел)            |
+| data:set_data(data: bytearray | table<int>)              | заменяет данные пикселей (ширина * высота * 4 чисел)            |
+| data:get_data()                                          | создаёт объект Bytearray с пиксельными данными изображения      |
 | data:create_texture(name: str)                           | создаёт и делится текстурой с рендерером                        |
 | data:unbind_texture()                                    | отвязывает текстуру от холста                                   |
 | data:mul(*цвет* или Canvas)                              | умножает увет на указанный цвет или холст                       |
