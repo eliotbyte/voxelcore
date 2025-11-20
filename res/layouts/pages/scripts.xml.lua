@@ -1,5 +1,5 @@
 function run_script(path)
-    __vc_start_app_script(path)
+    __vc_start_app_script(path, path)
 end
 
 function refresh()

@@ -116,7 +116,7 @@ function pack.unload(prefix)
     events.remove_by_prefix(prefix)
 end
 
-function __vc_start_app_script(path)
+function __vc_start_app_script(path, name)
     debug.log("starting application script "..path)
 
     local code = file.read(path)
@@ -126,7 +126,11 @@ function __vc_start_app_script(path)
     end
     local script_env = setmetatable({app = app or __vc_app}, {__index=_G})
     chunk = setfenv(chunk, script_env)
-    return __vc_start_coroutine(chunk, path)
+    if name then
+        return start_coroutine(chunk, name)
+    else
+        return __vc_start_coroutine(chunk)
+    end
 end
 
 gui_util = require "core:internal/gui_util"
