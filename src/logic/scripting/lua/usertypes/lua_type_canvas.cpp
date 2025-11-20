@@ -224,6 +224,13 @@ static int l_set_data(State* L) {
     return 0;
 }
 
+static int l_get_data(State* L) {
+    auto& canvas = require_canvas(L, 1);
+    auto& image = canvas.getData();
+    auto data = image.getData();
+    return create_bytearray(L, data, image.getDataSize());
+}
+
 static int l_update(State* L) {
     if (auto canvas = touserdata<LuaCanvas>(L, 1)) {
         canvas->update();
@@ -316,6 +323,7 @@ static std::unordered_map<std::string, lua_CFunction> methods {
     {"add", lua::wrap<l_add>},
     {"sub", lua::wrap<l_sub>},
     {"encode", lua::wrap<l_encode>},
+    {"get_data", lua::wrap<l_get_data>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
