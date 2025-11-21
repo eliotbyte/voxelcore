@@ -20,7 +20,6 @@ class LevelController {
     std::unique_ptr<ChunksController> chunks;
 
     util::Clock playerTickClock;
-    Player* localPlayer;
 public:
     LevelController(Engine* engine, std::unique_ptr<Level> level, Player* clientPlayer);
 

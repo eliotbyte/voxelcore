@@ -74,8 +74,7 @@ ALInputDevice::ALInputDevice(
     uint bitsPerSample,
     uint sampleRate
 )
-    : al(al),
-      device(device),
+    : device(device),
       channels(channels),
       bitsPerSample(bitsPerSample),
       sampleRate(sampleRate) {
