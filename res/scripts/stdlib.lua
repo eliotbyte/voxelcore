@@ -171,8 +171,11 @@ function console.log(...)
     log_element:paste(text)
 end
 
+local console_add_command = console.__add_command
+console.__add_command = nil
+
 function console.add_command(scheme, description, handler, is_cheat)
-    console.__add_command(scheme, description, handler)
+    console_add_command(scheme, description, handler)
     if not is_cheat then return end
 
     local name = string.match(scheme, "^(%S+)")

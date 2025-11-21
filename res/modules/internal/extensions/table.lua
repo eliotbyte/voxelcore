@@ -167,12 +167,16 @@ function table.remove_value(t, x)
     end
 end
 
-function table.insert_unique(t, val)
-    if table.has(t, val) then
+function table.insert_unique(t, pos_or_val, val)
+    if table.has(t, val or pos_or_val) then
         return
     end
 
-    table.insert(t, val)
+    if val then
+        table.insert(t, pos_or_val, val)
+    else
+        table.insert(t, pos_or_val)
+    end
 end
 
 function table.tostring(t)
