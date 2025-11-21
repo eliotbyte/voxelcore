@@ -175,6 +175,10 @@ void Engine::initialize(CoreParameters coreParameters) {
         langs::setup(lang, paths->resPaths.collectRoots());
     }, true));
 
+    keepAlive(settings.audio.inputDevice.observe([](auto name) {
+        audio::set_input_device(name == "auto" ? "" : name);
+    }, true));
+
     project->loadProjectStartScript();
     if (!params.headless) {
         project->loadProjectClientScript();

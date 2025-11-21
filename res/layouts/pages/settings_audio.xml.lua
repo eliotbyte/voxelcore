@@ -54,7 +54,7 @@ function on_open()
     create_setting("audio.volume-music", "Music", 0.01)
     document.root:add("<label context='settings'>@Microphone</label>")
     document.root:add("<select id='input_device_select' "..
-        "onselect='function(opt) audio.__set_input_device(opt) end'/>")
+        "onselect='function(opt) core.set_setting(\"audio.input-device\", opt) end'/>")
     document.root:add("<container id='input_volume_outer' color='#000000' size='4'>"
                         .."<container id='input_volume_inner' color='#00FF00FF' pos='1' size='2'/>"
                     .."</container>")

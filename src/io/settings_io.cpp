@@ -43,6 +43,7 @@ SettingsHandler::SettingsHandler(EngineSettings& settings) {
     builder.add("volume-ui", &settings.audio.volumeUI);
     builder.add("volume-ambient", &settings.audio.volumeAmbient);
     builder.add("volume-music", &settings.audio.volumeMusic);
+    builder.add("input-device", &settings.audio.inputDevice);
 
     builder.section("display");
     builder.add("width", &settings.display.width);
