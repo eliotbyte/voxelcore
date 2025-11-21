@@ -431,12 +431,6 @@ static int l_audio_get_output_devices_names(lua::State* L) {
     return 1;
 }
 
-static int l_audio_set_input_device(lua::State* L) {
-    auto device_name = lua::tostring(L, 1);
-    audio::set_input_device(device_name);
-    return 0;
-}
-
 static int l_audio_get_input_info(lua::State* L) {
     auto device = audio::get_input_device();
     if (device == nullptr) {
@@ -482,7 +476,6 @@ const luaL_Reg audiolib[] = {
     {"__fetch_input", lua::wrap<l_audio_fetch_input>},
     {"__get_input_devices_names", lua::wrap<l_audio_get_input_devices_names>},
     {"__get_output_devices_names", lua::wrap<l_audio_get_output_devices_names>},
-    {"__set_input_device", lua::wrap<l_audio_set_input_device>},
     {"__get_input_info", lua::wrap<l_audio_get_input_info>},
     {nullptr, nullptr}
 };
