@@ -59,7 +59,9 @@ function on_open()
                         .."<container id='input_volume_inner' color='#00FF00FF' pos='1' size='2'/>"
                     .."</container>")
     local selectbox = document.input_device_select
-    local devices = {}
+    local devices = {
+        {value="none", text=gui.str("None", "settings.microphone")},
+    }
     local names = audio.__get_input_devices_names()
     for i, name in ipairs(names) do
         table.insert(devices, {value=name, text=name})
