@@ -445,6 +445,7 @@ local __post_runnables = {}
 
 local fn_audio_reset_fetch_buffer = audio.__reset_fetch_buffer
 audio.__reset_fetch_buffer = nil
+core.get_core_token = audio.input.__get_core_token
 
 function __process_post_runnables()
     if #__post_runnables then
