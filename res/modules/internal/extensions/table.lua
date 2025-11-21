@@ -167,6 +167,14 @@ function table.remove_value(t, x)
     end
 end
 
+function table.insert_unique(t, val)
+    if table.has(t, val) then
+        return
+    end
+
+    table.insert(t, val)
+end
+
 function table.tostring(t)
     local s = '['
     for i,v in ipairs(t) do
