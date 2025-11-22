@@ -194,6 +194,7 @@ Here, *color* can be specified in the following ways:
 | data:blit(src: Canvas, dst_x: int, dst_y: int)           | draws the src canvas at the specified coordinates       |
 | data:clear()                                             | clears the canvas                                       |
 | data:clear(*color*)                                      | fills the canvas with the specified RGBA color          |
+| data:rect(x: int, y: int, w: int, h: int, *color*)       | fills the rectangle with the specified RGBA color       |
 | data:update()                                            | applies changes to the canvas and uploads it to the GPU |
 | data:set_data(data: Bytearray | table<int>)              | replaces pixel data (width * height * 4 numbers)        |
 | data:get_data()                                          | creates a Bytearray object with the image's pixel data  |
