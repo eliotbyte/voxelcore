@@ -47,6 +47,7 @@ local function complete_app_lib(app)
     end
     app.reset_content = core.reset_content
     app.is_content_loaded = core.is_content_loaded
+    app.set_title = core.set_title
     
     function app.config_packs(packs_list)
         -- Check if packs are valid and add dependencies to the configuration
@@ -116,7 +117,7 @@ function pack.unload(prefix)
     events.remove_by_prefix(prefix)
 end
 
-function __vc_start_app_script(path)
+function __vc_start_app_script(path, name)
     debug.log("starting application script "..path)
 
     local code = file.read(path)
@@ -126,7 +127,11 @@ function __vc_start_app_script(path)
     end
     local script_env = setmetatable({app = app or __vc_app}, {__index=_G})
     chunk = setfenv(chunk, script_env)
-    return __vc_start_coroutine(chunk, path)
+    if name then
+        return start_coroutine(chunk, name)
+    else
+        return __vc_start_coroutine(chunk)
+    end
 end
 
 gui_util = require "core:internal/gui_util"
@@ -164,6 +169,42 @@ function console.log(...)
         text = '\n'..text
     end
     log_element:paste(text)
+end
+
+local console_add_command = console.__add_command
+console.__add_command = nil
+
+function console.add_command(scheme, description, handler, is_cheat)
+    console_add_command(scheme, description, handler)
+    if not is_cheat then return end
+
+    local name = string.match(scheme, "^(%S+)")
+    if not name then
+        error("Incorrect command syntax, command name not found")
+    end
+
+    table.insert_unique(console.cheats, name)
+end
+
+function console.is_cheat(name)
+    if not table.has(console.get_commands_list(), name) then
+        error(string.format("command \"%s\" not found", name))
+    end
+
+    return table.has(console.cheats, name)
+end
+
+function console.set_cheat(name, status)
+    local is_cheat = console.is_cheat(name)
+    if status and not is_cheat then
+        table.insert(console.cheats, name)
+        return true
+    elseif not status and is_cheat then
+        table.remove_value(console.cheats, name)
+        return true
+    end
+
+    return false
 end
 
 function console.chat(...)
@@ -357,6 +398,10 @@ function __vc_on_world_tick(tps)
     time.schedules.world:tick(1.0 / tps)
 end
 
+function __vc_process_before_quit()
+    block.__process_register_events()
+end
+
 function __vc_on_world_save()
     local rule_values = {}
     for name, rule in pairs(rules.rules) do
@@ -436,6 +481,7 @@ local __post_runnables = {}
 
 local fn_audio_reset_fetch_buffer = audio.__reset_fetch_buffer
 audio.__reset_fetch_buffer = nil
+core.get_core_token = audio.input.__get_core_token
 
 function __process_post_runnables()
     if #__post_runnables then

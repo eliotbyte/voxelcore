@@ -72,6 +72,7 @@ void scripting::initialize(Engine* engine) {
 
     load_script(io::path("stdlib.lua"), true);
     load_script(io::path("classes.lua"), true);
+    load_script(io::path("internal_events.lua"), true);
 }
 
 class LuaCoroutine : public Process {
@@ -336,6 +337,13 @@ void scripting::on_world_save() {
         lua::emit_event(L, pack.id + ":.worldsave");
     }
     if (lua::getglobal(L, "__vc_on_world_save")) {
+        lua::call_nothrow(L, 0, 0);
+    }
+}
+
+void scripting::process_before_quit() {
+    auto L = lua::get_main_state();
+    if (lua::getglobal(L, "__vc_process_before_quit")) {
         lua::call_nothrow(L, 0, 0);
     }
 }
@@ -674,6 +682,10 @@ void scripting::load_content_script(
         register_event(env, "on_block_tick", prefix + ".blocktick");
     funcsset.onblockstick =
         register_event(env, "on_blocks_tick", prefix + ".blockstick");
+    funcsset.onblockpresent =
+        register_event(env, "on_block_present", prefix + ".blockpresent");
+    funcsset.onblockremoved =
+        register_event(env, "on_block_removed", prefix + ".blockremoved");
 }
 
 void scripting::load_content_script(

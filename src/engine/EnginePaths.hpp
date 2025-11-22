@@ -48,6 +48,9 @@ public:
 
     EnginePaths(CoreParameters& params);
 
+    std::filesystem::path getResourcesFolder() const;
+    std::filesystem::path getUserFilesFolder() const;
+
     io::path getWorldFolderByName(const std::string& name);
     io::path getWorldsFolder() const;
 
@@ -58,6 +61,7 @@ public:
     void unmount(const std::string& name);
 
     std::string createWriteableDevice(const std::string& name);
+    std::string createMemoryDevice();
 
     void setEntryPoints(std::vector<PathsRoot> entryPoints);
 

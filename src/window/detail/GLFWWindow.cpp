@@ -188,7 +188,7 @@ public:
         codepoints.clear();
         pressedKeys.clear();
         if (waitForRefresh) {
-            glfwWaitEvents();
+            glfwWaitEventsTimeout(0.5);
         } else {
             glfwPollEvents();
         }
@@ -466,6 +466,14 @@ public:
 
     WindowMode getMode() const override {
         return mode;
+    }
+
+    void focus() override {
+        glfwFocusWindow(window);
+    }
+
+    void setTitle(const std::string& title) override {
+        glfwSetWindowTitle(window, title.c_str());
     }
 
     void setIcon(const ImageData* image) override {

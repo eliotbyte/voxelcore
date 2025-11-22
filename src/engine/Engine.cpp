@@ -70,6 +70,7 @@ void Engine::onContentLoad() {
     for (auto& pack : content->getAllContentPacks()) {
         auto configFolder = pack.folder / "config";
         auto bindsFile = configFolder / "bindings.toml";
+        logger.info() << "loading bindings: " << bindsFile.string();
         if (io::is_regular_file(bindsFile)) {
             input->getBindings().read(
                 toml::parse(
@@ -172,6 +173,10 @@ void Engine::initialize(CoreParameters coreParameters) {
     }
     keepAlive(settings.ui.language.observe([this](auto lang) {
         langs::setup(lang, paths->resPaths.collectRoots());
+    }, true));
+
+    keepAlive(settings.audio.inputDevice.observe([](auto name) {
+        audio::set_input_device(name == "auto" ? "" : name);
     }, true));
 
     project->loadProjectStartScript();

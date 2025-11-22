@@ -1,8 +1,10 @@
+#define VC_ENABLE_REFLECTION
 #include "lua_type_canvas.hpp"
 
 #include "graphics/core/ImageData.hpp"
 #include "graphics/core/Texture.hpp"
 #include "logic/scripting/lua/lua_util.hpp"
+#include "coders/imageio.hpp"
 #include "engine/Engine.hpp"
 #include "assets/Assets.hpp"
 
@@ -123,7 +125,9 @@ static RGBA get_rgba(State* L, int first) {
             rgba.rgba = static_cast<uint>(tointeger(L, first));
             break;
         case 3:
-            rgba.a = static_cast<ubyte>(tointeger(L, first + 3));
+            if (lua::isnumber(L, first + 3)) {
+                rgba.a = static_cast<ubyte>(tointeger(L, first + 3));
+            }
             [[fallthrough]];
         case 2:
             rgba.r = static_cast<ubyte>(tointeger(L, first));
@@ -197,6 +201,18 @@ static int l_blit(State* L) {
     return 0;
 }
 
+static int l_rect(State* L) {
+    auto& canvas = require_canvas(L, 1);
+    auto& image = canvas.getData();
+    int x = tointeger(L, 2);
+    int y = tointeger(L, 3);
+    int w = tointeger(L, 4);
+    int h = tointeger(L, 5);
+    RGBA rgba = get_rgba(L, 6);
+    image.drawRect(x, y, w, h, glm::ivec4 {rgba.r, rgba.g, rgba.b, rgba.a});
+    return 0;
+}
+
 static int l_set_data(State* L) {
     auto& canvas = require_canvas(L, 1);
     auto& image = canvas.getData();
@@ -220,6 +236,13 @@ static int l_set_data(State* L) {
         pop(L);
     }
     return 0;
+}
+
+static int l_get_data(State* L) {
+    auto& canvas = require_canvas(L, 1);
+    auto& image = canvas.getData();
+    auto data = image.getData();
+    return create_bytearray(L, data, image.getDataSize());
 }
 
 static int l_update(State* L) {
@@ -284,18 +307,38 @@ static int l_sub(State* L) {
     return 0;
 }
 
+static int l_encode(State* L) {
+    auto canvas = touserdata<LuaCanvas>(L, 1);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    auto format = imageio::ImageFileFormat::PNG;
+    if (lua::isstring(L, 2)) {
+        auto name = lua::require_string(L, 2);
+        if (!imageio::ImageFileFormatMeta.getItem(name, format)) {
+            throw std::runtime_error("unsupported image file format");
+        }
+    }
+
+    auto buffer = imageio::encode(format, canvas->getData());
+    return lua::create_bytearray(L, buffer.data(), buffer.size());
+}
+
 static std::unordered_map<std::string, lua_CFunction> methods {
     {"at", lua::wrap<l_at>},
     {"set", lua::wrap<l_set>},
     {"line", lua::wrap<l_line>},
     {"blit", lua::wrap<l_blit>},
     {"clear", lua::wrap<l_clear>},
+    {"rect", lua::wrap<l_rect>},
     {"update", lua::wrap<l_update>},
     {"create_texture", lua::wrap<l_create_texture>},
     {"unbind_texture", lua::wrap<l_unbind_texture>},
     {"mul", lua::wrap<l_mul>},
     {"add", lua::wrap<l_add>},
     {"sub", lua::wrap<l_sub>},
+    {"encode", lua::wrap<l_encode>},
+    {"get_data", lua::wrap<l_get_data>},
     {"_set_data", lua::wrap<l_set_data>},
 };
 
@@ -354,6 +397,23 @@ static int l_meta_meta_call(lua::State* L) {
     );
 }
 
+static int l_canvas_decode(lua::State* L) {
+    auto bytes = bytearray_as_string(L, 1);
+    auto formatName = require_lstring(L, 2);
+    imageio::ImageFileFormat format;
+    if (!imageio::ImageFileFormatMeta.getItem(formatName, format)) {
+        throw std::runtime_error("unsupported image format");
+    }
+    return newuserdata<LuaCanvas>(
+        L,
+        nullptr,
+        imageio::decode(
+            format,
+            {reinterpret_cast<const unsigned char*>(bytes.data()), bytes.size()}
+        )
+    );
+}
+
 int LuaCanvas::createMetatable(State* L) {
     createtable(L, 0, 3);
     pushcfunction(L, lua::wrap<l_meta_index>);
@@ -365,5 +425,8 @@ int LuaCanvas::createMetatable(State* L) {
     pushcfunction(L, lua::wrap<l_meta_meta_call>);
     setfield(L, "__call");
     setmetatable(L);
+
+    pushcfunction(L, lua::wrap<l_canvas_decode>);
+    setfield(L, "decode");
     return 1;
 }

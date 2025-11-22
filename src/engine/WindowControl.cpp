@@ -33,11 +33,12 @@ WindowControl::Result WindowControl::initialize() {
     auto& settings = engine.getSettings();
 
     std::string title = project.title;
-    if (title.empty()) {
-        title = "VoxelCore v" +
-                        std::to_string(ENGINE_VERSION_MAJOR) + "." +
-                        std::to_string(ENGINE_VERSION_MINOR);
+    if (!title.empty()) {
+        title += " - ";
     }
+    title += "VoxelCore v" +
+                    std::to_string(ENGINE_VERSION_MAJOR) + "." +
+                    std::to_string(ENGINE_VERSION_MINOR);
     if (ENGINE_DEBUG_BUILD) {
         title += " [debug]";
     }
