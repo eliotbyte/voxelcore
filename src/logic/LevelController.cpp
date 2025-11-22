@@ -122,6 +122,7 @@ void LevelController::update(float delta, bool pause) {
 }
 
 void LevelController::processBeforeQuit() {
+    preQuitCallbacks.notify();
     // todo: move somewhere else
     for (auto player : level->players->getAll()) {
         if (player->chunks) {

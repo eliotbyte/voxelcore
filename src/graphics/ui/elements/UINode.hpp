@@ -2,6 +2,7 @@
 
 #include "delegates.hpp"
 #include "graphics/core/commons.hpp"
+#include "util/CallbacksSet.hpp"
 #include "window/input.hpp"
 
 #include <glm/glm.hpp>
@@ -22,29 +23,6 @@ namespace gui {
     using OnAction = std::function<void(GUI&)>;
     using OnNumberChange = std::function<void(GUI&, double)>;
     using OnStringChange = std::function<void(GUI&, const std::string&)>;
-
-    template<typename... Args>
-    class CallbacksSet {
-    public:
-        using Func = std::function<void(Args...)>;
-    private:
-        std::unique_ptr<std::vector<Func>> callbacks;
-    public:
-        void listen(const Func& callback) {
-            if (callbacks == nullptr) {
-                callbacks = std::make_unique<std::vector<Func>>();
-            }
-            callbacks->push_back(callback);
-        }
-
-        void notify(Args&&... args) {
-            if (callbacks) {
-                for (auto& callback : *callbacks) {
-                    callback(std::forward<Args>(args)...);
-                }
-            }
-        }
-    };
 
     template<class TagT, typename... Args>
     class TaggedCallbacksSet {
