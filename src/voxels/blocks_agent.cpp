@@ -35,7 +35,7 @@ static void on_chunk_register_event(
 
     uint8_t flagsCache[1024] {};
 
-    for (int i = totalBegin; i <= totalEnd; i++) {
+    for (int i = totalBegin; i < totalEnd; i++) {
         blockid_t id = voxels[i].id;
         uint8_t bits = id < sizeof(flagsCache) ? flagsCache[id] : 0;
         if ((bits & 0x80) == 0) {
