@@ -396,11 +396,6 @@ void ChunksRenderer::drawSortedMeshes(const Camera& camera, Shader& shader) {
         order.push_back(VisibleChunkTrans{glm::ivec2(chunk->x, chunk->z), &chunks[index.index], nearest});
     }
 
-    // Sort chunks by nearest translucent distance back-to-front (far to near)
-    std::sort(order.begin(), order.end(), [](const VisibleChunkTrans& a, const VisibleChunkTrans& b) {
-        return a.nearestDist2 > b.nearestDist2;
-    });
-
     // Draw per-chunk sorted mesh (keeps GPU buffers and avoids per-frame repack)
     for (const auto& item : order) {
         const auto& chunk = *item.chunkPtr;
